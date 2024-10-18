@@ -1,3 +1,5 @@
+#include <wiringPi.h>
+
 //LED PIN WIRINpi 0 is bcm_gpio 17.
 #define BIT0 0
 #define BIT1 1
