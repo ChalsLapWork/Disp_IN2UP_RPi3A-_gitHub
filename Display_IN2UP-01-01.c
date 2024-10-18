@@ -15,6 +15,7 @@
 int main(void){
   printf("\nInizializacion de Display");
   wiringPiSetup();
+
   pinMode(BIT0,OUTPUT);
   pinMode(BIT1,OUTPUT);
   pinMode(BIT2,OUTPUT);
@@ -26,7 +27,9 @@ int main(void){
   pinMode(BUSY,OUTPUT);
 
 for(;;){
-   
+   digitalWrite(BIT5,HIGH);
+   delay(500);
+   digitalWrite(BIT5,LOW);
 
 }//fin for++++++++++++++++++++
 
