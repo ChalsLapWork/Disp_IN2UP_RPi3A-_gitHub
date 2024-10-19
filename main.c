@@ -8,7 +8,7 @@ int main(void){
   printf("\nInizializacion de Display");
   wiringPiSetup();
   configPuertos();
-  
+  Init_VFD();
 
 for(;;){
    digitalWrite(BIT5,HIGH);
