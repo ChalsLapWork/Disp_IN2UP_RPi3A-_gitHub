@@ -8,6 +8,7 @@ int main(void){
   printf("\nInizializacion de Display");
   wiringPiSetup();
   configPuertos();
+  init_queue();
   Init_VFD();
 
 for(;;){
