@@ -5,7 +5,7 @@
 
 struct _DISPLAY_VFD_ vfd;
 
-void init_queue(void){
+void init_queues(void){
     vfd.config.byte1=0;//init all parameter into zero
 
 

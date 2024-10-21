@@ -1,8 +1,8 @@
-#inclue "system.h"
+#include "system.h"
 #include "queue.h"
 #include "VFD.h"
 
-extern struct _VFD_ vfd;
+extern struct _VFD vfd;
 
 //metodo unico de padre unico  y sin instancias
 void Init_VFD( void){

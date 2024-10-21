@@ -36,7 +36,7 @@
 #define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
 
 
-struct _VFD_{
+struct _VFD{
  union _Config{
   unsigned char byte1;
   struct _Bits{
@@ -245,3 +245,4 @@ unsigned char sacar_de_la_FIFO_IO(unsigned char pid);
 unsigned char insertarlo_en_Fifo_IO(unsigned char pid);
 unsigned char ya_esta_en_la_FIFO_IO(unsigned char pid);
 void Devolver_Recurso_VFD(unsigned char recurso,unsigned char pid);
+void init_queues(void);

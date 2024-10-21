@@ -9,7 +9,7 @@ int main(void){
   printf("\nInizializacion de Display");
   wiringPiSetup();
   configPuertos();
-  init_queue();
+  init_queues();
   Init_VFD();
 
 for(;;){
