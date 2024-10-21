@@ -2,6 +2,7 @@
 #include <wiringPi.h>
 #include "system.h"
 #include "init.h"
+#include "queue.h"
 
 
 int main(void){

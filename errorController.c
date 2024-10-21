@@ -1,6 +1,6 @@
 
 #include "errorController.h"
-
+#include "stdio.h"
 
 
 void errorCritico(char *c){  

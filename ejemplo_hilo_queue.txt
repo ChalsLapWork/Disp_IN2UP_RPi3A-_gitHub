@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <stdbool.h>
+
+#define MAX_QUEUE_SIZE 10
+
+typedef struct {
+    int data[MAX_QUEUE_SIZE];
+    int front, rear;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} Queue;
+
+void init_queue(Queue* q) {
+    q->front = q->rear = 0;
+    pthread_mutex_init(&q->lock, NULL);
+    pthread_cond_init(&q->cond, NULL);
+}
+
+bool is_full(Queue* q) {
+    return (q->rear + 1) % MAX_QUEUE_SIZE == q->front;
+}
+
+bool is_empty(Queue* q) {
+    return q->front == q->rear;
+}
+
+void enqueue(Queue* q, int value) {
+    pthread_mutex_lock(&q->lock);
+    while (is_full(q)) {
+        pthread_cond_wait(&q->cond, &q->lock);
+    }
+    q->data[q->rear] = value;
+    q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
+    pthread_cond_signal(&q->cond);
+    pthread_mutex_unlock(&q->lock);
+}
+
+int dequeue(Queue* q) {
+    pthread_mutex_lock(&q->lock);
+    while (is_empty(q)) {
+        pthread_cond_wait(&q->cond, &q->lock);
+    }
+    int value = q->data[q->front];
+    q->front = (q->front + 1) % MAX_QUEUE_SIZE;
+    pthread_cond_signal(&q->cond);
+    pthread_mutex_unlock(&q->lock);
+    return value;
+}
+
+void* thread_function(void* arg) {
+    Queue* q = (Queue*)arg;
+    while (true) {
+        int data = dequeue(q);
+        printf("Processed: %d\n", data);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t thread;
+    Queue q;
+
+    init_queue(&q);
+    pthread_create(&thread, NULL, thread_function, &q);
+
+    // Encolar datos nuevos
+    for (int i = 0; i < 20; i++) {
+        enqueue(&q, i);
+    }
+
+    pthread_join(thread, NULL);
+    return 0;
+}
