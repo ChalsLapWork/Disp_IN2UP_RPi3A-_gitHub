@@ -36,20 +36,7 @@
 #define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
 
 
-struct _VFD{
- union _Config{
-  unsigned char byte1;
-  struct _Bits{
-    unsigned char init_VFD:1;
-    unsigned char init_menu:1;
-    unsigned char BOX_enable:1;
-    unsigned char x0:1;
-    unsigned char x1:1;
-    unsigned char x2:1;
-    unsigned char x3:1;
-    }bits;
-  }config;
-};
+
 
 
 /*version 310322-1641 add reset genaral */
@@ -94,13 +81,13 @@ struct _DISPLAY_VFD_{
 	   	  			unsigned char FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
 	   	  			unsigned char DDSon:1;//indica si borramos registro de datos repetidos de DDS
 	   	  			unsigned char TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
-	   	  			unsigned char finit_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
-	   	  			unsigned char finit_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
+	   	  			unsigned char init_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
+	   	  			unsigned char init_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
 	   	  			unsigned char BOX_enable:1;
 	   	  			unsigned char VDF_busy:1;//se estan mandando comandos  o posiciones
 	   	  		    unsigned char ADC_DATO:1;
-	   	  		}b;
-	   	  	  }bits;
+	   	  		}bits;
+	   	  	  }config;
 	struct _Vars_{
 		unsigned char nbytes;//bytes a emitir
 		unsigned char dat[DATOS_SIZE];

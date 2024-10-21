@@ -7,7 +7,7 @@
 struct _DISPLAY_VFD_ vfd;
 
 void init_queues(void){
-    vfd.config.byte1=0;//init all parameter into zero
+    vfd.config.bytes1=0;//init all parameter into zero
 
 
 }//fin init queue++++++++++
@@ -45,7 +45,7 @@ unsigned char FIFO_general_1byte_pop(unsigned char *dato,
 		*(s->pop)=0;//vaciamos nodo
 		s->pop=s->push=s->tail;//reajustamos todo de inicio
 		s->ncount=0;s->nLibres++;s->nOcupados=0;}
-	else{*dato=*(s->pop)
+	else{*dato=*(s->pop);
 	     *(s->pop)=0;//vaciamos nodo
 	     if(s->ncount>0){
 	    	  s->ncount--;s->nLibres++;s->nOcupados++;}

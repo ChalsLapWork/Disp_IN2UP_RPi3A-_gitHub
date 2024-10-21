@@ -3,6 +3,7 @@
 #include "system.h"
 #include "init.h"
 #include "queue.h"
+#include "VFDisplay.h"
 
 
 int main(void){
@@ -13,9 +14,9 @@ int main(void){
   Init_VFD();
 
 for(;;){
-   digitalWrite(BIT5,HIGH);
+   digitalWrite(BIT5_PIN,HIGH);
    delay(500);
-   digitalWrite(BIT5,LOW);
+   digitalWrite(BIT5_PIN,LOW);
 
 }//fin for++++++++++++++++++++
 
