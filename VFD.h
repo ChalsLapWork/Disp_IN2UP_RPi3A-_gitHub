@@ -1,5 +1,24 @@
 
 
+#define keyEN  0x22U
+#define keyDN  0x23U
+#define keyLF  0x24U
+#define keyRT  0x25U
+#define keyUP  0x26U
+
+
+
+
+#define FONTSIZE1   0x01U //6x8
+#define FONTSIZE2   0x02U //8x16
+#define FONTSIZE3   0x03U //12x24
+#define FONTSIZE4   0x04U  //16x32
+
+typedef union{//access word: 
+	unsigned  short int coord16;   //   	0xaabb   
+	unsigned char byte[2];        //byte[0]=aa,byte[1]=bb
+}coordn16; //coordenadas de 2 bytes 
+
 void VFDkeypad_ISR(unsigned char c);
 void init_VFD_BIOS(void);
 void VFDposicionDDS(unsigned short int x,unsigned short int y);
@@ -39,10 +58,12 @@ unsigned char VFDserial_SendBlock2(const unsigned char *Ptr,unsigned short Size,
 void VFDclrscr(void);
 //unsigned char FontSizeVFD(unsigned char m,unsigned char Padre);
 void VFDdrawLine1(unsigned char pen,unsigned short int x1,unsigned short y1,unsigned short int x2,unsigned short y2);
-unsigned char FontSizeVFD(unsigned char m,unsigned char *p);
+//unsigned char FontSizeVFD(unsigned char m,unsigned char *p);
 unsigned char VFDcommand(unsigned char cmd);
 unsigned char VFDcommand_init(unsigned char cmd,unsigned char *p);
 unsigned char VFDdrawLine_v4(unsigned char pen,unsigned short int x1, unsigned short int y1,unsigned short int x2,unsigned short int y2,unsigned short int delay1,unsigned char *inst,unsigned short int *usi);
 unsigned char VFDdrawLine_v5(unsigned char pen,unsigned short int x1, unsigned short int y1,unsigned short int x2,unsigned short int y2,unsigned short int delay1,unsigned char *inst,unsigned short int *usi,unsigned char PIDpadre);
 void VFDcommand_Bold_DDS(unsigned char bold);
 unsigned char VFDcommand_Bold_DDS_v2(unsigned char bold);
+unsigned char FontSizeVFD(unsigned char m);
+unsigned char delay_us_VFD(unsigned short int t);
