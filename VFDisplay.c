@@ -2,7 +2,8 @@
 #include "queue.h"
 #include "VFD.h"
 
-extern struct _VFD vfd;
+
+extern struct _DISPLAY_VFD_ vfd;
 
 //metodo unico de padre unico  y sin instancias
 void Init_VFD( void){
@@ -12,6 +13,5 @@ void Init_VFD( void){
   VFDcommand(0x40U);	 // Setting return to default values 
   FontSizeVFD(FONTSIZE2);//TAMAÑO DE fuente 2->8x16
   vfd.config.bits.init_VFD=TRUE;
-
 			  
 }//fin init VFD -------------------------------------------------------------------
