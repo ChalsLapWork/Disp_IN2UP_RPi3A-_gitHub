@@ -41,11 +41,11 @@ unsigned char FIFO_general_1byte_pop(unsigned char *dato,struct _FIFO_1byte_ *s)
 		*dato=*(s->pop);//solo hay un dato en la FIFO
 		*(s->pop)=0;//vaciamos nodo
 		s->pop=s->push=s->tail;//reajustamos todo de inicio
-		s->ncount=0;}
-	else{*dato=*(s->pop);//solo hay un dato en la FIFO
+		s->ncount=0;s->nLibres++;s->nOcupados=0;}
+	else{*dato=*(s->pop)
 	     *(s->pop)=0;//vaciamos nodo
-	     if(s->ncount>0)
-	    	  s->ncount--;
+	     if(s->ncount>0){
+	    	  s->ncount--;s->nLibres++;s->nOcupados++;}
 		 if(s->pop==s->head)
 			    s->pop=s->tail;
 		 else s->pop--;}
@@ -61,32 +61,32 @@ return TRUE;
  * */
 unsigned char FIFO_general_1byte_push(unsigned char dato,struct _FIFO_1byte_ *s){
 auto unsigned char ret=0;
-	  if(!(s->size>s->ncount)) 
+	  if(s->nLibres=0) 
 		   return FALSE;//FIFO llena
 	  if(s->ncount==0){
 		   s->pop=s->push=s->tail;//emparejamos pointers
 		   *(s->push)=dato;
 		   s->push--;
-	       s->ncount++;ret=TRUE;}
+	       s->ncount++;s->nLibres--;s->nOcupados++;
+           ret=TRUE;}
 	  else{if(s->push==s->head){
 		      if(s->tail==s->pop){
 		    	  *(s->push)=dato;
 		    	  s->push=s->pop;//esta llena
-		    	  s->ncount++;
-		    	  if(s->ncount==s->size){//si cupo uno
-		    		    ret=TRUE;}//SE inserto dato en ultimo lugar vacio
-		    	  else{__asm(nop);__asm(Halt);}}//error de software
+		    	  s->ncount++;s->nLibres--;s->nOcupados++;}
 		      else{*(s->push)=dato;s->push=s->tail;
-		           s->ncount++;ret=TRUE;}}
+		           s->ncount++;s->nLibres--;s->nOcupados++;
+                   ret=TRUE;}}
 	       else{if(s->push-1==s->pop){//nos recorreremos para atras y no topamos con pop
 		           *(s->push)=dato;
 		           s->push=s->pop;
-		           s->ncount++;
-		           if(s->ncount==s->size){//se acaba de llenar fifo pero si cupo uno
-  		    		    ret=TRUE;}//SE inserto dato en ultimo lugar vacio
-   		    	   else{__asm(nop);__asm(Halt);}}//error de software
-	            else{*(s->push)=dato;s->push--;
-	                 s->ncount++;ret=TRUE;}}}
+		           s->ncount++;s->nLibres--;s->nOcupados++;
+                   if(s->nLibres>0){errorCritico("error de algoritmo de fifo");
+                                    exit(-1);}
+		           ret=TRUE;}
+	             else{*(s->push)=dato;s->push--;
+                          s->nLibres--;s->nOcupados++;
+	                    s->ncount++;ret=TRUE;}}
 return ret;
 }//FIFO_general_1byte_push------------------------------------------
 

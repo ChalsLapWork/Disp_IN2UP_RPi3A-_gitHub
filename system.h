@@ -2,16 +2,16 @@
 #define SYSTEM_H_
 
 //LED PIN WIRINpi 0 is bcm_gpio 17.
-#define BIT0 0
-#define BIT1 1
-#define BIT2 2
-#define BIT3 3
-#define BIT4 4
-#define BIT5 5
-#define BIT6 6
-#define BIT7 7
-#define WR   8
-#define BUSY 9
+#define BIT0_PIN 0
+#define BIT1_PIN 1
+#define BIT2_PIN 2
+#define BIT3_PIN 3
+#define BIT4_PIN 4
+#define BIT5_PIN 5
+#define BIT6_PIN 6
+#define BIT7_PIN 7
+#define WR_PIN   8
+#define R_BUSY_PIN 9 //Ready/Busy
 //**************************************************
 
 
@@ -19,7 +19,6 @@
 
 #ifndef _TIPO_DE_MAQUINA_
 #define _TIPO_DE_MAQUINA_ PHARMACEUTICO //TRIPLE_FRECUENCIA
-#endif
 
 #define ON   1
 #define YES  1

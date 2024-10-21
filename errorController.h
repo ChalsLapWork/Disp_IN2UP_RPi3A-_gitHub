@@ -1,0 +1,1 @@
+void errorCritico(char *c);
