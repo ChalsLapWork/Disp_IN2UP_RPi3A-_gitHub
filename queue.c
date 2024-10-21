@@ -1,5 +1,6 @@
-
+#include "system.h"
 #include "queue.h"
+#include "string.h"
 
 
 struct _DISPLAY_VFD_ vfd;
@@ -92,10 +93,10 @@ return ret;
 
 
 
-//se resetea toda la fifo y todo queda cmo de inicio
-//  serial.resetFIFO=reset_FIFO_serial_TX;
-// version 310322-1626 
-void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned short int  size){
+//se resetea toda la fifo y todo queda cmo de inici
+// version 21-oct-24:10:15am
+void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
+       unsigned char *arr,unsigned char  size){
 	   s->pop=s->push=s->tail;
 	   s->ncount=0;
 	   cleanArray(arr,size,0);
