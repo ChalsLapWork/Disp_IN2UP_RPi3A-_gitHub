@@ -205,12 +205,14 @@ void init_FIFO_RX_serial_Keypad(struct _FIFO_1byte_ *s);
 unsigned char FIFO_general_1byte_push(unsigned char dato,struct _FIFO_1byte_ *s);
 //unsigned char get_case_FIFO_general(struct _FIFO_1byte_ *s);
 unsigned char FIFO_general_1byte_pop(unsigned char *dato,struct _FIFO_1byte_ *s);
-void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned short int size);
+void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
+            unsigned char *arr,unsigned short int size);
 void Testing_SO_Debug(void);
 unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p);
 unsigned char vfd_FIFO_pop(unsigned char *x,unsigned char *y,unsigned char *p);
 unsigned char vfd_FIFOs_RESET(void);
-void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,unsigned char *h,unsigned char *t,unsigned short int size);
+void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
+             unsigned char *h,unsigned char size);
 unsigned char dds_pix_pop(signed short int *x,signed short int *y);
 unsigned char dds_pix_append(signed short int x,signed short int y);
 unsigned char dds_pix_reset(void);
