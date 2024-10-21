@@ -206,7 +206,7 @@ unsigned char FIFO_general_1byte_push(unsigned char dato,struct _FIFO_1byte_ *s)
 //unsigned char get_case_FIFO_general(struct _FIFO_1byte_ *s);
 unsigned char FIFO_general_1byte_pop(unsigned char *dato,struct _FIFO_1byte_ *s);
 void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
-            unsigned char *arr,unsigned short int size);
+            unsigned char *arr,unsigned char size);
 void Testing_SO_Debug(void);
 unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p);
 unsigned char vfd_FIFO_pop(unsigned char *x,unsigned char *y,unsigned char *p);
