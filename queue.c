@@ -1,6 +1,7 @@
 #include "system.h"
 #include "queue.h"
 #include "string.h"
+#include "errorController.h"
 
 
 struct _DISPLAY_VFD_ vfd;
@@ -35,7 +36,8 @@ void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
 
 //return FALSE if is empty
 /* version 300322-1156*/
-unsigned char FIFO_general_1byte_pop(unsigned char *dato,struct _FIFO_1byte_ *s){	
+unsigned char FIFO_general_1byte_pop(unsigned char *dato,
+                   struct _FIFO_1byte_ *s){	
 	if(s->ncount==0)
 		return FALSE;
 	if(s->ncount==1){
@@ -60,15 +62,15 @@ return TRUE;
  * RegrESA  FALSE si esta llena
  *   version 39.22.5.0
  * */
-unsigned char FIFO_general_1byte_push(unsigned char dato,struct _FIFO_1byte_ *s){
+unsigned char FIFO_general_1byte_push(unsigned char dato,
+                                  struct _FIFO_1byte_ *s){
 auto unsigned char ret=0;
-	  if(s->nLibres=0) 
+	  if(s->nLibres==0) 
 		   return FALSE;//FIFO llena
 	  if(s->ncount==0){
 		   s->pop=s->push=s->tail;//emparejamos pointers
 		   *(s->push)=dato;
-		   s->push--;
-	       s->ncount++;s->nLibres--;s->nOcupados++;
+		   s->push--;s->ncount++;s->nLibres--;s->nOcupados++;
            ret=TRUE;}
 	  else{if(s->push==s->head){
 		      if(s->tail==s->pop){
@@ -82,14 +84,13 @@ auto unsigned char ret=0;
 		           *(s->push)=dato;
 		           s->push=s->pop;
 		           s->ncount++;s->nLibres--;s->nOcupados++;
-                   if(s->nLibres>0){errorCritico("error de algoritmo de fifo");
-                                    exit(-1);}
+                   if(s->nLibres>0){errorCritico("error de algoritmo de fifo");}
 		           ret=TRUE;}
 	             else{*(s->push)=dato;s->push--;
                           s->nLibres--;s->nOcupados++;
-	                    s->ncount++;ret=TRUE;}}
+	                    s->ncount++;ret=TRUE;}}}
 return ret;
-}//FIFO_general_1byte_push------------------------------------------
+}//FIFO_general_1byte_push---------------------------------------------
 
 
 

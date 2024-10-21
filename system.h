@@ -21,6 +21,7 @@
 
 #ifndef _TIPO_DE_MAQUINA_
 #define _TIPO_DE_MAQUINA_ PHARMACEUTICO //TRIPLE_FRECUENCIA
+#endif
 
 #define ON   1
 #define YES  1
