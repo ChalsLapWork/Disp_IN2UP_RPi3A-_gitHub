@@ -272,7 +272,6 @@
 #define _DELAY_     'E'//delay de espera para mandar algo al VFD
 //#define _FEM_       0x54 //estado FFlag End MEnu, describe que ya se desplego el menu seleccionado- para poder empezar a trabajar en ese menu
 #define DELAY_TIME 1 //numero de IntERRUPCIONES DE TIMER1 para crear delay
-#define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
 
 #define XROW        128//buffer para guardar los pixeles  que se estan
 #define YCOL         24//desplegando en el DDS para se usados por el zoom despues

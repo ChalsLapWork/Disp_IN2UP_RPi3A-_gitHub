@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <wiringPi.h>
-#include <system.h>
+#include "system.h"
 #include "init.h"
 
 

@@ -33,6 +33,7 @@
 #define SIZE_TBC 15
 #define SIZE_CHAR 5
 #define SIZE_FEW  3
+#define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
 
 
 struct _VFD_{
