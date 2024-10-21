@@ -60,7 +60,7 @@ void VFDclrscr(void);
 void VFDdrawLine1(unsigned char pen,unsigned short int x1,unsigned short y1,unsigned short int x2,unsigned short y2);
 //unsigned char FontSizeVFD(unsigned char m,unsigned char *p);
 unsigned char VFDcommand(unsigned char cmd);
-unsigned char VFDcommand_init(unsigned char cmd,unsigned char *p);
+unsigned char VFDcommand_init(unsigned char cmd);
 unsigned char VFDdrawLine_v4(unsigned char pen,unsigned short int x1, unsigned short int y1,unsigned short int x2,unsigned short int y2,unsigned short int delay1,unsigned char *inst,unsigned short int *usi);
 unsigned char VFDdrawLine_v5(unsigned char pen,unsigned short int x1, unsigned short int y1,unsigned short int x2,unsigned short int y2,unsigned short int delay1,unsigned char *inst,unsigned short int *usi,unsigned char PIDpadre);
 void VFDcommand_Bold_DDS(unsigned char bold);
