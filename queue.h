@@ -48,7 +48,7 @@ struct _FIFO_1byte_{//FIFO PARA UNA VARIABLE para un byte
 	unsigned char (*popf)(unsigned char *n,struct _FIFO_1byte_ *s);//quitar el prmer elemento de la fifo DDS
 	unsigned char (*appendByte)(unsigned char  n,struct _FIFO_1byte_ *s);//agregar byte al buffer de transmision
     void (*vaciarbuff)(unsigned char *p1,unsigned char *p2,unsigned short int size);
-    void (*resetFIFO)(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned short int size);
+    void (*resetFIFO)(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned char size);
     unsigned short int ncount;//cuenta los nodos llenos en la fifo
     unsigned short int size; //size de la fifo
     unsigned char nLibres;//cantidad de nLibres
