@@ -140,5 +140,5 @@ unsigned char xDisplay_Cursores_DDS_VFD(unsigned char *inst);
 unsigned char  displayControlCursorSubMenusKey_v2(unsigned char direccion,unsigned char *posx, unsigned char *posy,unsigned char esqx,unsigned char *posiciones,unsigned char posx0,unsigned char *inst);
 unsigned char xDisplay_Cursores_en_DDS_VFD(unsigned char *inst);
 unsigned char  display_Sens_Lim_v2(float angulo,unsigned short int sens,unsigned char *inst,unsigned short int *usi,float *f);
-
+void Init_VFD( void);
 #endif /* VFDISPLAY_H_ */
