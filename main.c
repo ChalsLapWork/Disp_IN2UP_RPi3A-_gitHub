@@ -5,7 +5,6 @@
 #include "queue.h"
 #include "VFDisplay.h"
 
-
 int main(void){
   printf("\nInizializacion de Display");
   wiringPiSetup();

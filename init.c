@@ -13,6 +13,9 @@ void configPuertos(void){
   pinMode(BIT6_PIN,OUTPUT);
   pinMode(WR_PIN  ,OUTPUT);
   pinMode(R_BUSY_PIN,OUTPUT);
+#if (debug_level1==1) 
+  printf("\nConfigurando Puertos");
+#endif  
 }//fin init puertos++++++++++++++++++++++++
 
 

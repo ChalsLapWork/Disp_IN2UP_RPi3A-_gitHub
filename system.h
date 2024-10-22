@@ -16,6 +16,9 @@
 #define R_BUSY_PIN 9 //Ready/Busy
 //**************************************************
 
+// debug Nivel del debugeo numero-1
+#define debug_level1 1
+
 
 #define PHARMACEUTICO 0xAB
 

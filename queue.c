@@ -9,6 +9,9 @@ struct _DISPLAY_VFD_ vfd;
 void init_queues(void){
     vfd.config.bytes1=0;//init all parameter into zero
 
+#if (debug_level1==1) 
+  printf("\nQueues Inizializadas");
+#endif  
 
 }//fin init queue++++++++++
 
