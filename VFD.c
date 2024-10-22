@@ -85,3 +85,4 @@ auto unsigned char ret=FALSE;
     if(ret==3)ret=TRUE;else ret=FALSE;		    
 return ret;	
 }//fin vfd command----------------------------------------------------
+

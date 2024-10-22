@@ -6,9 +6,16 @@
 
 struct _DISPLAY_VFD_ vfd;
 
+unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
+unsigned char  buffer7[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro=char|box|pos|
+unsigned char  buffer8[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro numero 3
+
+
 void init_queues(void){
     vfd.config.bytes1=0;//init all parameter into zero
-
+    vfd.f1.append= vfd_FIFO_push;
+	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
+	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
 #if (debug_level1==1) 
   printf("\nQueues Inizializadas");
 #endif  
@@ -107,3 +114,66 @@ void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
 	  
 }//fin reset_FIFO_serial_TX---fin se resetea toda la fifo
 
+
+//FIFO para ingresar un dato a desplegar vfd.f1.append(14,0,_BOX_);
+unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
+const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
+volatile unsigned char n=0;	
+static unsigned char control;
+auto unsigned char ret=0;
+    
+    if(!(vfd.x.ncount<SIZE_BUFFER6))
+    	 return FALSE;//esta muy llena la FIFO, espera un poco
+    switch(p){//1100 0000 los dos MSB indican que proqrametro es
+    	case _BOX_:if(x==0)
+    		            return;
+    	           if(vfd.box.timer==0){
+    	        	    vfd.box.timer=DELAY_TIME*BYTES_BOX;
+    	        	    cleanArray(&vfd.box.boxs[0],SIZE_BOXES,0);
+    	                return;}
+    		       if(vfd.box.boxs[x]==0)
+    		    	   vfd.box.boxs[x]++;        
+    		       else {if(vfd.box.boxs[x]<250){
+    		    	          vfd.box.boxs[x]++;
+    		                  return;}
+    		              else return;}
+    	           break;              
+    	case _CHAR_ :y='c';break;
+    	case _PUNTO_:if((x==0)&&(y==0)){return(TRUE);}
+    	             break;
+    	case _RAYA_ : 
+    	case _POS_  :break;
+    	case _BOLD_:break;
+    	default:break;}
+     n=vfd.x.appendByte(x,&vfd.x);
+	 n+=vfd.y.appendByte(y,&vfd.y);
+	 n+=vfd.p.appendByte(p,&vfd.p);
+	 if(n==3){//fifo llena
+	      ret=TRUE;}
+return ret;
+}//fin vfd_FIFO_push-------------------------------------------
+
+
+/*   */
+unsigned char vfd_FIFO_pop(unsigned char *x,unsigned char *y,unsigned char *p){
+unsigned char  r;	 
+	   if(vfd.x.ncount==0){
+		   if((vfd.y.ncount!=0)&&(vfd.p.ncount!=0))
+			       __asm(Halt);//Debug error de software
+	       return 0;}//FIFO vacia
+	   else r=1;//FIFO regresa un valor
+       vfd.x.popf(x,&vfd.x);
+       vfd.y.popf(y,&vfd.y);
+       vfd.p.popf(p,&vfd.p);
+return r;	   
+}//fin vfd_FIFO_pop------------------------------------------------------------
+
+/* para el cambio de contexto todas los registros y FIFOs e
+ * resetean*/
+unsigned char vfd_FIFOs_RESET(void){
+	vfd.config.bits.FIFOonReset=1;//se activa el reset, indica que estan en reseteo
+	vfd.x.resetFIFO(&vfd.x,&buffer6[0],SIZE_BUFFER6);
+	vfd.y.resetFIFO(&vfd.y,&buffer7[0],SIZE_BUFFER6);
+	vfd.p.resetFIFO(&vfd.p,&buffer8[0],SIZE_BUFFER6);
+		
+}//fin --------------------------------------------------------
