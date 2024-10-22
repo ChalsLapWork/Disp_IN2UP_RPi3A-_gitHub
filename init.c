@@ -1,6 +1,7 @@
 #include <wiringPi.h>
 #include "system.h"
 #include "init.h"
+#include <stdio.h>
 
 
 void configPuertos(void){

@@ -2,7 +2,7 @@
 #include "queue.h"
 #include "string.h"
 #include "errorController.h"
-
+#include <stdio.h>
 
 struct _DISPLAY_VFD_ vfd;
 
