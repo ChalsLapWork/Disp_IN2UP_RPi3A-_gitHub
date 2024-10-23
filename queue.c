@@ -116,27 +116,28 @@ void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
 
 
 //FIFO para ingresar un dato a desplegar vfd.f1.append(14,0,_BOX_);
+//Return false|true   TRUE: si se agrego sin problemas
 unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
 const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
 volatile unsigned char n=0;	
-static unsigned char control;
+//static unsigned char control;
 auto unsigned char ret=0;
     
     if(!(vfd.x.ncount<SIZE_BUFFER6))
     	 return FALSE;//esta muy llena la FIFO, espera un poco
     switch(p){//1100 0000 los dos MSB indican que proqrametro es
     	case _BOX_:if(x==0)
-    		            return;
+    		            return FALSE; 
     	           if(vfd.box.timer==0){
     	        	    vfd.box.timer=DELAY_TIME*BYTES_BOX;
     	        	    cleanArray(&vfd.box.boxs[0],SIZE_BOXES,0);
-    	                return;}
+    	                return TRUE;}
     		       if(vfd.box.boxs[x]==0)
     		    	   vfd.box.boxs[x]++;        
-    		       else {if(vfd.box.boxs[x]<250){
+    		       else{if(vfd.box.boxs[x]<250){
     		    	          vfd.box.boxs[x]++;
-    		                  return;}
-    		              else return;}
+    		                  return TRUE;}
+    		              else return TRUE;}
     	           break;              
     	case _CHAR_ :y='c';break;
     	case _PUNTO_:if((x==0)&&(y==0)){return(TRUE);}
@@ -158,8 +159,9 @@ return ret;
 unsigned char vfd_FIFO_pop(unsigned char *x,unsigned char *y,unsigned char *p){
 unsigned char  r;	 
 	   if(vfd.x.ncount==0){
-		   if((vfd.y.ncount!=0)&&(vfd.p.ncount!=0))
-			       __asm(Halt);//Debug error de software
+		   if((vfd.y.ncount!=0)&&(vfd.p.ncount!=0)){
+			       //__asm(Halt);//Debug error de software
+		           errorCritico("\n error de Software de FIFO pop");}
 	       return 0;}//FIFO vacia
 	   else r=1;//FIFO regresa un valor
        vfd.x.popf(x,&vfd.x);
