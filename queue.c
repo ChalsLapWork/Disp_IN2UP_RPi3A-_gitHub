@@ -177,5 +177,5 @@ unsigned char vfd_FIFOs_RESET(void){
 	vfd.x.resetFIFO(&vfd.x,&buffer6[0],SIZE_BUFFER6);
 	vfd.y.resetFIFO(&vfd.y,&buffer7[0],SIZE_BUFFER6);
 	vfd.p.resetFIFO(&vfd.p,&buffer8[0],SIZE_BUFFER6);
-		
+ return TRUE;	
 }//fin --------------------------------------------------------
