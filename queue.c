@@ -12,6 +12,10 @@ unsigned char  buffer8[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el para
 
 
 void init_queues(void){
+	init_FIFO_General_1byte(&vfd.x,&buffer6[0],SIZE_BUFFER6);
+    init_FIFO_General_1byte(&vfd.y,&buffer7[0],SIZE_BUFFER6);
+    init_FIFO_General_1byte(&vfd.p,&buffer8[0],SIZE_BUFFER6);
+     	  
     vfd.config.bytes1=0;//init all parameter into zero
     vfd.f1.append= vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
