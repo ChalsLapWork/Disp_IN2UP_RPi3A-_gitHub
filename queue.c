@@ -40,7 +40,7 @@ void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
 	s->tail=h+size-1;
 	s->pop=s->tail;
 	s->push=s->tail;
-	s->ncount=0;
+	s->ncount=s->nOcupados=0;s->nLibres=size;
 	s->popf=FIFO_general_1byte_pop;
 	s->appendByte=FIFO_general_1byte_push;
 	s->size=size;
