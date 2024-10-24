@@ -79,7 +79,7 @@ void enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
 }//fin enqueue++++++++++++++++++++++++++++++++++++
 
 struct VFD_DATA dequeue(FIFO_VFD *q) {
-struct vdf v;	
+struct VFD_DATA v;	
     pthread_mutex_lock(&q->lock);
     while (is_empty_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
