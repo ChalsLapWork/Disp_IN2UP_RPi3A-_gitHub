@@ -16,7 +16,7 @@ void signal_handler(int signalnum){
 }//fin manejador de signal
 
 int main(void){
-  printf("\nInizializacion de Display");
+  printf("\nInsight v3");
   wiringPiSetup();
   configPuertos();
   init_queues();
