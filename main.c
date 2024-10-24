@@ -4,6 +4,16 @@
 #include "init.h"
 #include "queue.h"
 #include "VFDisplay.h"
+#include <signal.h>
+#include <unistd.h>
+
+
+void signal_handler(int signalnum){
+    #if(debug_level1==1)
+       printf(" signal:%d",signalnum);
+    #endif
+    
+}//fin manejador de signal
 
 int main(void){
   printf("\nInizializacion de Display");
@@ -11,7 +21,7 @@ int main(void){
   configPuertos();
   init_queues();
   Init_VFD();
-
+  signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
 for(;;){
    digitalWrite(BIT5_PIN,HIGH);
    delay(500);

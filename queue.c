@@ -16,7 +16,12 @@ typedef struct{
 
 struct _DISPLAY_VFD_ vfd;
 FIFO_VFD vfdtx;//fifo de transmision vfd 
-void init_FIFO_transmit_VFD(FIFO_VFD *q);
+void init_Queue_with_Thread(FIFO_VFD *q);
+int dequeue(FIFO_VFD *q);
+void enqueue(FIFO_VFD *q);
+unsigned char is_full_Queue(FIFO_VFD *q);
+unsigned char is_empty_Queue(FIFO_VFD *q);
+pthread_t Proc_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 
 unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
 unsigned char  buffer7[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro=char|box|pos|
@@ -32,7 +37,9 @@ void init_queues(void){
     vfd.f1.append= vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
 	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
-	init_FIFO_transmit_VFD(&vfdtx);
+	init_Queue_with_Thread(&vfdtx);//fifos Transmisor data al Display
+	if(!pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx))//ret==0 :all OK
+	    vfd.config.bits.Proc_VFD_Tx_running=TRUE;//esta corriendo el proceso de TX al VFD
 #if (debug_level1==1) 
   printf("\nQueues Inizializadas");
 #endif  
@@ -40,12 +47,54 @@ void init_queues(void){
 }//fin init queue++++++++++
 
 
-void init_FIFO_transmit_VFD(FIFO_VFD *q){
+void init_Queue_with_Thread(FIFO_VFD *q){
       q->head=q->tail=0;
 	  pthread_mutex_init(&q->lock,NULL);//
 	  pthread_cond_init(&q->cond,NULL);
 }//fin de init FIFO transmit VFD+++++++++++++++++++++++++
   
+unsigned char is_full_Queue(FIFO_VFD *q){
+    return (q->tail+1)% SIZE_MAX_FIFO == q->head;
+}//FIN DE  is full FIFO tx VFD +++++++++++++++++++++++++
+
+unsigned char is_empty_Queue(FIFO_VFD *q){
+ return q->tail==q->head;
+}//fin de esta vacia la queue de transmision de VFD ++++++++
+
+void enqueue(FIFO_VFD *q){
+  pthread_mutex_lock(&q->lock);
+    while (is_full(q)) {
+        pthread_cond_wait(&q->cond, &q->lock);
+    }
+    q->data[q->rear] = value;
+    q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
+    pthread_cond_signal(&q->cond);
+    pthread_mutex_unlock(&q->lock);
+}//fin enqueue++++++++++++++++++++++++++++++++++++
+
+int dequeue(FIFO_VFD *q) {
+    pthread_mutex_lock(&q->lock);
+    while (is_empty(q)) {
+        pthread_cond_wait(&q->cond, &q->lock);
+    }
+    int value = q->data[q->front];
+    q->front = (q->front + 1) % MAX_QUEUE_SIZE;
+    pthread_cond_signal(&q->cond);
+    pthread_mutex_unlock(&q->lock);
+    return value;
+}//fin de queue+++++++++++++++++++++++++++++++++
+
+/*  Control de Display de VFD de despliegue
+   por thread  */
+void* thread_function(void* arg) {
+    Queue* q = (Queue*)arg;
+    while (true) {
+        int data = dequeue(q);
+        printf("Processed: %d\n", data);
+    }
+    return NULL;
+}
+
 
 /*parametro 
  * 1: La fifo a inizializar

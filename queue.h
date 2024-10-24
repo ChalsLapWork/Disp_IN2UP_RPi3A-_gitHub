@@ -76,16 +76,17 @@ struct _DISPLAY_VFD_{
 		 unsigned short int timer;//se activa  por timer y resetea el array
 	   }box;
 	union _Byte5_{
-	   	  		unsigned char bytes1;
+	   	  		unsigned short int bytes1;
 	   	  		struct{
-	   	  			unsigned char FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
-	   	  			unsigned char DDSon:1;//indica si borramos registro de datos repetidos de DDS
-	   	  			unsigned char TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
-	   	  			unsigned char init_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
-	   	  			unsigned char init_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
-	   	  			unsigned char BOX_enable:1;
-	   	  			unsigned char VDF_busy:1;//se estan mandando comandos  o posiciones
-	   	  		    unsigned char ADC_DATO:1;
+	   	  			unsigned short FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
+	   	  			unsigned short DDSon:1;//indica si borramos registro de datos repetidos de DDS
+	   	  			unsigned short TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
+	   	  			unsigned short init_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
+	   	  			unsigned short init_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
+	   	  			unsigned short BOX_enable:1;
+	   	  			unsigned short VDF_busy:1;//se estan mandando comandos  o posiciones
+	   	  		    unsigned short ADC_DATO:1;
+					unsigned short Proc_VFD_Tx_running:1;//esta corriendo el hilo que transmite a la VFD
 	   	  		}bits;
 	   	  	  }config;
 	struct _Vars_{

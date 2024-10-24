@@ -17,7 +17,7 @@
 //**************************************************
 
 // debug Nivel del debugeo numero-1
-#define debug_level1 1
+#define debug_level1 1 //1:esta activado el debugeo
 
 
 #define PHARMACEUTICO 0xAB
