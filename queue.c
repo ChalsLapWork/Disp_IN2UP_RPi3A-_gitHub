@@ -2,9 +2,21 @@
 #include "queue.h"
 #include "string.h"
 #include "errorController.h"
-#include <stdio.h>
+#if(debug_level1==1)
+  #include <stdio.h>
+#end
+#include <pthread.h>
+
+typedef struct{
+  unsigned char data[SIZE_MAX_FIFO];
+  unsigned char head,tail;
+  pthread_mutex_t  lock;//mutex lock
+  pthread_cond_t   cond;//mutex condicion
+}FIFO_VFD;
 
 struct _DISPLAY_VFD_ vfd;
+FIFO_VFD vfdtx;//fifo de transmision vfd 
+void init_FIFO_transmit_VFD(FIFO_VFD *q);
 
 unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
 unsigned char  buffer7[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro=char|box|pos|
@@ -20,12 +32,20 @@ void init_queues(void){
     vfd.f1.append= vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
 	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
+	init_FIFO_transmit_VFD(&vfdtx);
 #if (debug_level1==1) 
   printf("\nQueues Inizializadas");
 #endif  
 
 }//fin init queue++++++++++
 
+
+void init_FIFO_transmit_VFD(FIFO_VFD *q){
+      q->head=q->tail=0;
+	  pthread_mutex_init(&q->lock,NULL);//
+	  pthread_mutex_init(&q->cond,NULL);
+}//fin de init FIFO transmit VFD+++++++++++++++++++++++++
+  
 
 /*parametro 
  * 1: La fifo a inizializar
@@ -52,8 +72,11 @@ void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
 /* version 300322-1156*/
 unsigned char FIFO_general_1byte_pop(unsigned char *dato,
                    struct _FIFO_1byte_ *s){	
-	if(s->ncount==0)
-		return FALSE;
+	if(s->ncount==0){
+        #if(debug_level1==1)
+		    printf("\nFIFO LLENA");
+	    #endif
+		return FALSE;}
 	if(s->ncount==1){
 		*dato=*(s->pop);//solo hay un dato en la FIFO
 		*(s->pop)=0;//vaciamos nodo

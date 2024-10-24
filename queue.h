@@ -34,7 +34,7 @@
 #define SIZE_CHAR 5
 #define SIZE_FEW  3
 #define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
-
+#define SIZE_MAX_FIFO 10//TAMAÑÑO de fifo de transmision a VFD
 
 
 
