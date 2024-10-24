@@ -68,14 +68,14 @@ void enqueue(FIFO_VFD *q){
         pthread_cond_wait(&q->cond, &q->lock);
     }
     q->data[q->tail] = value;
-    q->tail = (q->tail + 1) % MAX_QUEUE_SIZE;
+    q->tail = (q->tail + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
 }//fin enqueue++++++++++++++++++++++++++++++++++++
 
 int dequeue(FIFO_VFD *q) {
     pthread_mutex_lock(&q->lock);
-    while (is_empty(q)) {
+    while (is_empty_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
     }
     int value = q->data[q->tail];
