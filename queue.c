@@ -8,7 +8,9 @@
 #include <pthread.h>
 
 typedef struct{
-  unsigned char data[SIZE_MAX_FIFO];
+  unsigned char Xdata[SIZE_MAX_FIFO];
+  unsigned char Ydata[SIZE_MAX_FIFO];
+  unsigned char Pdata[SIZE_MAX_FIFO];
   unsigned char head,tail;
   pthread_mutex_t  lock;//mutex lock
   pthread_cond_t   cond;//mutex condicion
@@ -18,7 +20,7 @@ struct _DISPLAY_VFD_ vfd;
 FIFO_VFD vfdtx;//fifo de transmision vfd 
 void init_Queue_with_Thread(FIFO_VFD *q);
 int dequeue(FIFO_VFD *q);
-void enqueue(FIFO_VFD *q,unsigned char value);
+void enqueue(FIFO_VFD *q,unsigned char X,unsigned char y,unsigned char p);
 unsigned char is_full_Queue(FIFO_VFD *q);
 unsigned char is_empty_Queue(FIFO_VFD *q);
 void* SubProceso_Tx_VFD(void* arg);
@@ -35,7 +37,7 @@ void init_queues(void){
     init_FIFO_General_1byte(&vfd.p,&buffer8[0],SIZE_BUFFER6);
      	  
     vfd.config.bytes1=0;//init all parameter into zero
-    vfd.f1.append= vfd_FIFO_push;
+    vfd.f1.append=vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
 	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
 	init_Queue_with_Thread(&vfdtx);//fifos Transmisor data al Display
@@ -62,7 +64,8 @@ unsigned char is_empty_Queue(FIFO_VFD *q){
  return q->tail==q->head;
 }//fin de esta vacia la queue de transmision de VFD ++++++++
 
-void enqueue(FIFO_VFD *q,unsigned char value){
+void enqueue(FIFO_VFD *q,unsigned char X,
+            unsigned char y,unsigned char p){
   pthread_mutex_lock(&q->lock);
     while (is_full_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
@@ -85,16 +88,23 @@ int dequeue(FIFO_VFD *q) {
     return value;
 }//fin de queue+++++++++++++++++++++++++++++++++
 
-/*  Control de Display de VFD de despliegue
-   por thread  */
+/*  Control de Display de VFD de despliegue por thread  */
 void* SubProceso_Tx_VFD(void* arg) {
     FIFO_VFD* q = (FIFO_VFD*)arg;
     while (TRUE) {
         int data = dequeue(q);
+#if (debug_level1==1)		
         printf("Processed: %d\n", data);
-    }
+#endif		
+    }//fin while infinite loop
     return NULL;
-}
+}//fin del subproceso de envio de datos al display+++++++++++++
+
+
+void Terminar_subProcesos(void){
+   
+    pthread_join(SubProceso_Tx_VFD,NULL);
+}//terminar subprocesos+++++++++++++++++++++++++
 
 
 /*parametro 
@@ -221,14 +231,15 @@ auto unsigned char ret=0;
     	             break;
     	case _RAYA_ : 
     	case _POS_  :break;
-    	case _BOLD_:break;
+    	case _BOLD_ :break;
     	default:break;}
-     n=vfd.x.appendByte(x,&vfd.x);
-	 n+=vfd.y.appendByte(y,&vfd.y);
-	 n+=vfd.p.appendByte(p,&vfd.p);
-	 if(n==3){//fifo llena
-	      ret=TRUE;}
-return ret;
+     //n=vfd.x.appendByte(x,&vfd.x);deprecated
+	 //n+=vfd.y.appendByte(y,&vfd.y);deprecated
+	 //n+=vfd.p.appendByte(p,&vfd.p);deprecated
+     enqueue(&vfdtx,x,y,p);
+	 //if(n==3){//fifo llena
+	   //   ret=TRUE;}deprecated
+return TRUE;//ret;
 }//fin vfd_FIFO_push-------------------------------------------
 
 

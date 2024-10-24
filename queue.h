@@ -236,3 +236,4 @@ unsigned char insertarlo_en_Fifo_IO(unsigned char pid);
 unsigned char ya_esta_en_la_FIFO_IO(unsigned char pid);
 void Devolver_Recurso_VFD(unsigned char recurso,unsigned char pid);
 void init_queues(void);
+void Terminar_subProcesos(void);

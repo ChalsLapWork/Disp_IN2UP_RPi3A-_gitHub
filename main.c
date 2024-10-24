@@ -12,7 +12,7 @@ void signal_handler(int signalnum){
     #if(debug_level1==1)
        printf(" signal:%d",signalnum);
     #endif
-    
+    Terminar_subProcesos();
 }//fin manejador de signal
 
 int main(void){
