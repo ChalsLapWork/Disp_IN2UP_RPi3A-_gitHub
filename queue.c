@@ -78,8 +78,8 @@ int dequeue(FIFO_VFD *q) {
     while (is_empty(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
     }
-    int value = q->data[q->front];
-    q->head = (q->head + 1) % MAX_QUEUE_SIZE;
+    int value = q->data[q->tail];
+    q->head = (q->head + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     return value;
