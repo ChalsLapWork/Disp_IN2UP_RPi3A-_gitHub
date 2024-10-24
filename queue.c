@@ -82,8 +82,7 @@ struct VFD_DATA dequeue(FIFO_VFD *q) {
 struct VFD_DATA v;	
     pthread_mutex_lock(&q->lock);
     while (is_empty_Queue(q)) {
-        pthread_cond_wait(&q->cond, &q->lock);
-    }./
+        pthread_cond_wait(&q->cond, &q->lock);}
     v.x=q->Xdata[q->tail];
 	v.y=q->Ydata[q->tail];
 	v.p=q->Pdata[q->tail];
