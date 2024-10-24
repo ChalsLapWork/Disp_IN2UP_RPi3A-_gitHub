@@ -79,15 +79,18 @@ void enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
 }//fin enqueue++++++++++++++++++++++++++++++++++++
 
 struct VFD_DATA dequeue(FIFO_VFD *q) {
+struct vdf v;	
     pthread_mutex_lock(&q->lock);
     while (is_empty_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
     }
-    int value = q->data[q->tail];
+    v.x=q->Xdata[q->tail];
+	v.y=q->Ydata[q->tail];
+	v.p=q->Pdata[q->tail];
     q->head = (q->head + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
-    return value;
+    return v;
 }//fin de queue+++++++++++++++++++++++++++++++++
 
 /*  Control de Display de VFD de despliegue por thread  */
@@ -104,8 +107,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 
 
 void Terminar_subProcesos(void){
-   
-    pthread_join(SubProceso_Tx_VFD,NULL);
+    pthread_join(Proc_Tx_VFD,NULL);
 }//terminar subprocesos+++++++++++++++++++++++++
 
 
