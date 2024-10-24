@@ -14,6 +14,10 @@ typedef struct{
   unsigned char head,tail;
   pthread_mutex_t  lock;//mutex lock
   pthread_cond_t   cond;//mutex condicion
+  #if(SIZE_MAX_FIFO<255)
+    unsigned char nLibres;
+	unsigned char nOcupados;
+  #endif
 }FIFO_VFD;
 
 
@@ -53,16 +57,26 @@ void init_queues(void){
 
 void init_Queue_with_Thread(FIFO_VFD *q){
       q->head=q->tail=0;
+	  q->nLibres=SIZE_MAX_FIFO-1;
+	  q->nOcupados=0;
 	  pthread_mutex_init(&q->lock,NULL);//
 	  pthread_cond_init(&q->cond,NULL);
 }//fin de init FIFO transmit VFD+++++++++++++++++++++++++
   
+//true:is_Full. False: No_Full  
 unsigned char is_full_Queue(FIFO_VFD *q){
-    return (q->tail+1)% SIZE_MAX_FIFO == q->head;
+   // return (q->tail+1)% SIZE_MAX_FIFO == q->head;
+   if(q->nLibres==0)
+       return TRUE;//IS FULL
+   else return FALSE;
 }//FIN DE  is full FIFO tx VFD +++++++++++++++++++++++++
 
+//++++++++++++++++++++++++++++++++++++
 unsigned char is_empty_Queue(FIFO_VFD *q){
- return q->tail==q->head;
+ //return q->tail==q->head;
+  if(q->nOcupados==0)
+     return TRUE;//
+  else return FALSE;
 }//fin de esta vacia la queue de transmision de VFD ++++++++
 
 void enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
@@ -73,6 +87,7 @@ void enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
     q->Xdata[q->tail]=x;
 	q->Ydata[q->tail]=y;
 	q->Pdata[q->tail]=p;
+	q->nLibres--;q->nOcupados++;
     q->tail = (q->tail + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
@@ -91,6 +106,7 @@ struct VFD_DATA v;
 	   q->Ydata[q->tail]=0;
 	   q->Pdata[q->tail]=0;
 	#endif   
+	q->nLibres++;q->nOcupados--;
     q->head = (q->head + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
