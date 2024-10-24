@@ -103,6 +103,12 @@ struct _DISPLAY_VFD_{
     		
 };//fin display VFD----------------------------------------------
 
+struct VFD_DATA{
+  unsigned char x;
+  unsigned char y;
+  unsigned char p:
+};
+
 
 
 /*  FIN DDS ESTRUCURA ********************************************++++*/

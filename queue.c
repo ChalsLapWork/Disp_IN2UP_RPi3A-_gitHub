@@ -16,10 +16,11 @@ typedef struct{
   pthread_cond_t   cond;//mutex condicion
 }FIFO_VFD;
 
+
 struct _DISPLAY_VFD_ vfd;
 FIFO_VFD vfdtx;//fifo de transmision vfd 
 void init_Queue_with_Thread(FIFO_VFD *q);
-int dequeue(FIFO_VFD *q);
+struct VFD_DATA dequeue(FIFO_VFD *q);
 void enqueue(FIFO_VFD *q,unsigned char X,unsigned char y,unsigned char p);
 unsigned char is_full_Queue(FIFO_VFD *q);
 unsigned char is_empty_Queue(FIFO_VFD *q);
@@ -64,19 +65,20 @@ unsigned char is_empty_Queue(FIFO_VFD *q){
  return q->tail==q->head;
 }//fin de esta vacia la queue de transmision de VFD ++++++++
 
-void enqueue(FIFO_VFD *q,unsigned char X,
-            unsigned char y,unsigned char p){
+void enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
   pthread_mutex_lock(&q->lock);
     while (is_full_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
     }
-    q->data[q->tail] = value;
+    q->Xdata[q->tail]=x;
+	q->Ydata[q->tail]=y;
+	q->Pdata[q->tail]=p;
     q->tail = (q->tail + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
 }//fin enqueue++++++++++++++++++++++++++++++++++++
 
-int dequeue(FIFO_VFD *q) {
+struct VFD_DATA dequeue(FIFO_VFD *q) {
     pthread_mutex_lock(&q->lock);
     while (is_empty_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
@@ -92,9 +94,9 @@ int dequeue(FIFO_VFD *q) {
 void* SubProceso_Tx_VFD(void* arg) {
     FIFO_VFD* q = (FIFO_VFD*)arg;
     while (TRUE) {
-        int data = dequeue(q);
+        struct VFD_DATA data = dequeue(q);
 #if (debug_level1==1)		
-        printf("Processed: %d\n", data);
+        printf("VFD Tx: %X,%X,%X\n", data.x,data.y,data.p);
 #endif		
     }//fin while infinite loop
     return NULL;
@@ -206,9 +208,9 @@ void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
 //Return false|true   TRUE: si se agrego sin problemas
 unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
 const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
-volatile unsigned char n=0;	
+//volatile unsigned char n=0;	
 //static unsigned char control;
-auto unsigned char ret=0;
+//auto unsigned char ret=0;
     
     if(!(vfd.x.ncount<SIZE_BUFFER6))
     	 return FALSE;//esta muy llena la FIFO, espera un poco
