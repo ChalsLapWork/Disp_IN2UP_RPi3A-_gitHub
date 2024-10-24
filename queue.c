@@ -18,7 +18,7 @@ struct _DISPLAY_VFD_ vfd;
 FIFO_VFD vfdtx;//fifo de transmision vfd 
 void init_Queue_with_Thread(FIFO_VFD *q);
 int dequeue(FIFO_VFD *q);
-void enqueue(FIFO_VFD *q);
+void enqueue(FIFO_VFD *q,unsigned char value);
 unsigned char is_full_Queue(FIFO_VFD *q);
 unsigned char is_empty_Queue(FIFO_VFD *q);
 void* SubProceso_Tx_VFD(void* arg);
@@ -62,7 +62,7 @@ unsigned char is_empty_Queue(FIFO_VFD *q){
  return q->tail==q->head;
 }//fin de esta vacia la queue de transmision de VFD ++++++++
 
-void enqueue(FIFO_VFD *q){
+void enqueue(FIFO_VFD *q,unsigned char value){
   pthread_mutex_lock(&q->lock);
     while (is_full_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
