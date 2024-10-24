@@ -21,6 +21,7 @@ int dequeue(FIFO_VFD *q);
 void enqueue(FIFO_VFD *q);
 unsigned char is_full_Queue(FIFO_VFD *q);
 unsigned char is_empty_Queue(FIFO_VFD *q);
+void* SubProceso_Tx_VFD(void* arg);
 pthread_t Proc_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 
 unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
@@ -63,11 +64,11 @@ unsigned char is_empty_Queue(FIFO_VFD *q){
 
 void enqueue(FIFO_VFD *q){
   pthread_mutex_lock(&q->lock);
-    while (is_full(q)) {
+    while (is_full_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
     }
-    q->data[q->rear] = value;
-    q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
+    q->data[q->tail] = value;
+    q->tail = (q->tail + 1) % MAX_QUEUE_SIZE;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
 }//fin enqueue++++++++++++++++++++++++++++++++++++
@@ -78,7 +79,7 @@ int dequeue(FIFO_VFD *q) {
         pthread_cond_wait(&q->cond, &q->lock);
     }
     int value = q->data[q->front];
-    q->front = (q->front + 1) % MAX_QUEUE_SIZE;
+    q->head = (q->head + 1) % MAX_QUEUE_SIZE;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     return value;
@@ -86,9 +87,9 @@ int dequeue(FIFO_VFD *q) {
 
 /*  Control de Display de VFD de despliegue
    por thread  */
-void* thread_function(void* arg) {
-    Queue* q = (Queue*)arg;
-    while (true) {
+void* SubProceso_Tx_VFD(void* arg) {
+    FIFO_VFD* q = (FIFO_VFD*)arg;
+    while (TRUE) {
         int data = dequeue(q);
         printf("Processed: %d\n", data);
     }
