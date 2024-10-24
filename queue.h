@@ -106,7 +106,7 @@ struct _DISPLAY_VFD_{
 struct VFD_DATA{
   unsigned char x;
   unsigned char y;
-  unsigned char p:
+  unsigned char p;
 };
 
 
