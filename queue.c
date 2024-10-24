@@ -83,7 +83,7 @@ struct VFD_DATA v;
     pthread_mutex_lock(&q->lock);
     while (is_empty_Queue(q)) {
         pthread_cond_wait(&q->cond, &q->lock);
-    }
+    }./
     v.x=q->Xdata[q->tail];
 	v.y=q->Ydata[q->tail];
 	v.p=q->Pdata[q->tail];
@@ -214,8 +214,8 @@ const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando
 //static unsigned char control;
 //auto unsigned char ret=0;
     
-    if(!(vfd.x.ncount<SIZE_BUFFER6))
-    	 return FALSE;//esta muy llena la FIFO, espera un poco
+    //if(!(vfd.x.ncount<SIZE_BUFFER6))
+    //	 return FALSE;//esta muy llena la FIFO, espera un poco
     switch(p){//1100 0000 los dos MSB indican que proqrametro es
     	case _BOX_:if(x==0)
     		            return FALSE; 
