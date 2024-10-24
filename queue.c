@@ -86,6 +86,11 @@ struct VFD_DATA v;
     v.x=q->Xdata[q->tail];
 	v.y=q->Ydata[q->tail];
 	v.p=q->Pdata[q->tail];
+	#if (debug_level1==1)
+	   Xdata[q->tail]=0;
+	   Ydata[q->tail]=0;
+	   Pdata[q->tail]=0;
+	#endif   
     q->head = (q->head + 1) % SIZE_MAX_FIFO;
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
