@@ -4,7 +4,7 @@
 #include "errorController.h"
 #if(debug_level1==1)
   #include <stdio.h>
-#end
+#endif
 #include <pthread.h>
 
 typedef struct{
@@ -43,7 +43,7 @@ void init_queues(void){
 void init_FIFO_transmit_VFD(FIFO_VFD *q){
       q->head=q->tail=0;
 	  pthread_mutex_init(&q->lock,NULL);//
-	  pthread_mutex_init(&q->cond,NULL);
+	  pthread_cond_init(&q->cond,NULL);
 }//fin de init FIFO transmit VFD+++++++++++++++++++++++++
   
 
