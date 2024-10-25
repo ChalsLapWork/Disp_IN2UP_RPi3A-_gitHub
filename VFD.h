@@ -65,5 +65,5 @@ unsigned char VFDdrawLine_v4(unsigned char pen,unsigned short int x1, unsigned s
 unsigned char VFDdrawLine_v5(unsigned char pen,unsigned short int x1, unsigned short int y1,unsigned short int x2,unsigned short int y2,unsigned short int delay1,unsigned char *inst,unsigned short int *usi,unsigned char PIDpadre);
 void VFDcommand_Bold_DDS(unsigned char bold);
 unsigned char VFDcommand_Bold_DDS_v2(unsigned char bold);
-unsigned char FontSizeVFD(unsigned char m);
+unsigned char FontSizeVFD(unsigned char m,unsigned char *mem);
 unsigned char delay_us_VFD(unsigned short int t);

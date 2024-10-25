@@ -20,7 +20,7 @@ int main(void){
   wiringPiSetup();
   configPuertos();
   init_queues();
-  Init_VFD();
+  
   signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
 for(;;){
    digitalWrite(BIT5_PIN,HIGH);

@@ -26,20 +26,18 @@ return VFDserial_SendChar1(cmd);
 //con estos delay ya obedece pero no sabemos si todos o cual
 // instancia s1,s2
 //METODO  mono-Padre Con-Instancia No almismo Tiempo
-unsigned char FontSizeVFD(unsigned char m){
-auto unsigned short int n=10000;
-auto unsigned char ret=0;
-
-    ret+=VFDcommand_init(0x1FU);// font size select of a character command
-	ret+=delay_us_VFD(n);//<--pusimos estos delay
-	ret+=VFDcommand_init(0x28U);//  comando 1fh,28h,67h,01h,m
-    ret+=delay_us_VFD(n);//<--pusimos estos delay
-	ret+=VFDcommand_init(0x67U);//m= 01h  6x8 font,   m=02h->8x16 font
-	ret+=delay_us_VFD(n);//<--pusimos estos delay
-	ret+=VFDcommand_init(0x01U);//m=03h-> 12x24   m=04h->16x32 font
-	ret+=delay_us_VFD(n);//<--pusimos estos delay
-	ret+=VFDcommand_init(m);
-	if(ret==9) ret=TRUE;else ret=FALSE;
+unsigned char FontSizeVFD(unsigned char m,unsigned char *mem){
+//auto unsigned short int n=10000;
+auto unsigned char ret=0,*estado;
+  estado=mem;
+  switch(*estado){
+	case 1:if(VFDcommand(0x1FU))(*estado)++;break;// font size select of a character command
+	case 2:if(VFDcommand(0x28U))(*estado)++;break;//  comando 1fh,28h,67h,01h,m
+    case 3:if(VFDcommand(0x67U))(*estado)++;break;//m= 01h  6x8 font,   m=02h->8x16 font
+	case 4:if(VFDcommand(0x01U))(*estado)++;break;//m=03h-> 12x24   m=04h->16x32 font
+	case 5:if(VFDcommand(m))    (*estado)++;break;
+	case 6:ret=TRUE;*estado=0;break;
+	default:*estado=1;break;}
 return ret;
 }// fin font size for the VFD----------------------------------------------------
 

@@ -18,18 +18,22 @@ typedef struct{
     unsigned char nLibres;
 	unsigned char nOcupados;
   #endif
+  struct _DISPLAY_VFD_ *v;//pointer to the control general of vfd
 }FIFO_VFD;
 
 
 struct _DISPLAY_VFD_ vfd;
 FIFO_VFD vfdtx;//fifo de transmision vfd 
 void init_Queue_with_Thread(FIFO_VFD *q);
-struct VFD_DATA dequeue(FIFO_VFD *q);
-void enqueue(FIFO_VFD *q,unsigned char X,unsigned char y,unsigned char p);
+unsigned char dequeue(FIFO_VFD *q,struct VFD_DATA *v );
+unsigned char enqueue(FIFO_VFD *q,unsigned char X,unsigned char y,unsigned char p);
 unsigned char is_full_Queue(FIFO_VFD *q);
 unsigned char is_empty_Queue(FIFO_VFD *q);
 void* SubProceso_Tx_VFD(void* arg);
 pthread_t Proc_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
+pthread_t Proc_Init_VFD;//Proceso para inizializar el VFD
+pthread_cond_t cond_init_TX_VFD;//condicion de init VFD transmisor
+pthread_mutex_t mutex_init_VFD;//mutex para init VFD y transmisor
 
 unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
 unsigned char  buffer7[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro=char|box|pos|
@@ -45,14 +49,19 @@ void init_queues(void){
     vfd.f1.append=vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
 	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
+	vfdtx.v=&vfd;//misma estructura en los dos lados,
 	init_Queue_with_Thread(&vfdtx);//fifos Transmisor data al Display
-	if(!pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx))//ret==0 :all OK
-	    vfd.config.bits.Proc_VFD_Tx_running=TRUE;//esta corriendo el proceso de TX al VFD
+	vfd.config.bits.recurso_VFD_Ocupado=TRUE;//recurso ocupado, VFD nadie lo puede usar
+	if(!pthread_create(&Proc_Init_VFD,NULL,Init_VFD,&vfd))
+	        errorCritico("error de hilo init VFD");
+	pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
 #if (debug_level1==1) 
   printf("\nQueues Inizializadas");
 #endif  
 
 }//fin init queue++++++++++
+
+
 
 
 void init_Queue_with_Thread(FIFO_VFD *q){
@@ -68,39 +77,35 @@ unsigned char is_full_Queue(FIFO_VFD *q){
    // return (q->tail+1)% SIZE_MAX_FIFO == q->head;
    if(q->nLibres==0)
        return TRUE;//IS FULL
-   else return FALSE;
+   else return FALSE;//0: no esta lleno
 }//FIN DE  is full FIFO tx VFD +++++++++++++++++++++++++
 
 //++++++++++++++++++++++++++++++++++++
 unsigned char is_empty_Queue(FIFO_VFD *q){
  //return q->tail==q->head;
   if(q->nOcupados==0)
-     return TRUE;//
-  else return FALSE;
+     return TRUE;//1:vacio fifo
+  else return FALSE;//0:no esta vacio
 }//fin de esta vacia la queue de transmision de VFD ++++++++
 
-void enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
-  pthread_mutex_lock(&q->lock);
-    while (is_full_Queue(q)) {
-        pthread_cond_wait(&q->cond, &q->lock);
-    }
+//encola regresa TRUE: si esta llena , FALSE: si esta vacia
+unsigned char enqueue(FIFO_VFD *q,unsigned char x,unsigned char y,unsigned char p){
+    if(is_full_Queue(q))
+            return FALSE;//FIFO LLENA, 0:no se completo la mision
     q->Xdata[q->tail]=x;
 	q->Ydata[q->tail]=y;
 	q->Pdata[q->tail]=p;
 	q->nLibres--;q->nOcupados++;
     q->tail = (q->tail + 1) % SIZE_MAX_FIFO;
-    pthread_cond_signal(&q->cond);
-    pthread_mutex_unlock(&q->lock);
-}//fin enqueue++++++++++++++++++++++++++++++++++++
+return TRUE;
+}//fin enqueue++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-struct VFD_DATA dequeue(FIFO_VFD *q) {
-struct VFD_DATA v;	
-    pthread_mutex_lock(&q->lock);
-    while (is_empty_Queue(q)) {
-        pthread_cond_wait(&q->cond, &q->lock);}
-    v.x=q->Xdata[q->tail];
-	v.y=q->Ydata[q->tail];
-	v.p=q->Pdata[q->tail];
+unsigned char dequeue(FIFO_VFD *q,struct VFD_DATA *v ) {	
+    if(is_empty_Queue(q)) 
+           return FALSE;//0:No se completo la operacion
+    v->x=q->Xdata[q->tail];
+	v->y=q->Ydata[q->tail];
+	v->p=q->Pdata[q->tail];
 	#if (debug_level1==1)
 	   q->Xdata[q->tail]=0;
 	   q->Ydata[q->tail]=0;
@@ -108,26 +113,76 @@ struct VFD_DATA v;
 	#endif   
 	q->nLibres++;q->nOcupados--;
     q->head = (q->head + 1) % SIZE_MAX_FIFO;
-    pthread_cond_signal(&q->cond);
-    pthread_mutex_unlock(&q->lock);
-    return v;
+return TRUE;
 }//fin de queue+++++++++++++++++++++++++++++++++
 
 /*  Control de Display de VFD de despliegue por thread  */
 void* SubProceso_Tx_VFD(void* arg) {
     FIFO_VFD* q = (FIFO_VFD*)arg;
-    while (TRUE) {
-        struct VFD_DATA data = dequeue(q);
-#if (debug_level1==1)		
-        printf("VFD Tx: %X,%X,%X\n", data.x,data.y,data.p);
-#endif		
-    }//fin while infinite loop
-    return NULL;
+	struct VFD_DATA data;
+	unsigned char estado124,ret=0;
+	while(!ret){
+	 switch(estado124){
+	   case 1:pthread_cond_wait(&cond_init_TX_VFD,mutex_init_VFD);//esperamos cond y liberamos mutex	
+             estado124++;break;//start para iniciar el proceso
+	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
+	   case 3:pthread_mutex_lock(mutex_init_VFD);estado124++;break;
+	   case 4:if(dequeue(q,&data)){estado124++;}
+	          else{if(q->v->config.bits.init_VFD) //todavia no acaba de init el vfd ??
+			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
+				   else{pthread_mutex_unlock(mutex_init_VFD);}}
+			  break;
+	   case 5:pthread_mutex_unlock(mutex_init_VFD);
+	          printf("\nEstamos Procesando el dato");estado124++;break;
+	   case 6:printf("\n Ya se proceso y se envio el dato");estado124++;break;
+	   case 7:estado124=3;break;//ciclo de nuevo
+       case 10:q->v->config.bits.Proc_VFD_Tx_running=FALSE;
+	           ret=TRUE;estado124=0;break;
+	   default:estado124=1;break;}}//fin switch y while
+return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
+
+//Proceso  unico de padre unico  y sin instancias
+void* Init_VFD(void* arg){
+unsigned char ret=0,estado,memoria;  
+struct _DISPLAY_VFD_* vfd1=(struct _DISPLAY_VFD_*)arg;
+const unsigned char SIZE_CMD=7;//numero de comandos
+unsigned char s[SIZE_CMD]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
+unsigned char i=0;
+#if (debug_level1==1) 
+   printf("\nInit VFD., Send cmds:\n");
+#endif  
+  if(vfd1->config.bits.init_VFD){
+	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   
+ while(!ret){
+	switch(estado){
+		case 1:pthread_mutex_init(&mutex_init_VFD);
+		       pthread_cond_init(&cond_init_TX_VFD);estado++;break;
+		case 2:if(!pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx))//ret==0 :all OK
+	                  errorCritico("error de creacion de Proc Tx VFD");
+		       estado++;break;
+	    case 3:pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
+		case 4:pthread_mutex_lock(&mutex_init_VFD);estado++;break;
+		case 5:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
+        case 6:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
+		case 7:if(++i==SIZE_CMD)estado124++;else{estado124=10;}break;
+        case 10:estado=0;ret=TRUE;break;
+		default:estado=1;break;}}//fin switch while 
+
+  if(ret==3){
+       vfd.config.bits.init_VFD=TRUE;
+       vfd.config.bits.Proc_VFD_Tx_running=FALSE;}
+  else errorCritico("\nNo se inizializa el display\n");	   	  
+#if (debug_level1==1) 
+   printf("\nInit VFD, Terminado  result=%d\n",ret);
+#endif  
+}//fin init VFD -------------------------------------------------------------------
+
 
 
 void Terminar_subProcesos(void){
     pthread_join(Proc_Tx_VFD,NULL);
+	pthread_mutex_destroy(&q->lock);
 }//terminar subprocesos+++++++++++++++++++++++++
 
 
@@ -232,7 +287,7 @@ unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
 const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
 //volatile unsigned char n=0;	
 //static unsigned char control;
-//auto unsigned char ret=0;
+auto unsigned char ret=0;
     
     //if(!(vfd.x.ncount<SIZE_BUFFER6))
     //	 return FALSE;//esta muy llena la FIFO, espera un poco
@@ -260,10 +315,10 @@ const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando
      //n=vfd.x.appendByte(x,&vfd.x);deprecated
 	 //n+=vfd.y.appendByte(y,&vfd.y);deprecated
 	 //n+=vfd.p.appendByte(p,&vfd.p);deprecated
-     enqueue(&vfdtx,x,y,p);
+     ret=enqueue(&vfdtx,x,y,p);
 	 //if(n==3){//fifo llena
 	   //   ret=TRUE;}deprecated
-return TRUE;//ret;
+return ret;//ret;
 }//fin vfd_FIFO_push-------------------------------------------
 
 

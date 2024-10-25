@@ -87,6 +87,7 @@ struct _DISPLAY_VFD_{
 	   	  			unsigned short VDF_busy:1;//se estan mandando comandos  o posiciones
 	   	  		    unsigned short ADC_DATO:1;
 					unsigned short Proc_VFD_Tx_running:1;//esta corriendo el hilo que transmite a la VFD
+					unsigned short recurso_VFD_Ocupado:1;//recurso esta 0:libre o 1:ocupado?
 	   	  		}bits;
 	   	  	  }config;
 	struct _Vars_{
@@ -243,3 +244,4 @@ unsigned char ya_esta_en_la_FIFO_IO(unsigned char pid);
 void Devolver_Recurso_VFD(unsigned char recurso,unsigned char pid);
 void init_queues(void);
 void Terminar_subProcesos(void);
+void Init_VFD( void);
