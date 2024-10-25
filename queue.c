@@ -2,6 +2,7 @@
 #include "queue.h"
 #include "string.h"
 #include "errorController.h"
+#include "VFD.h"
 #if(debug_level1==1)
   #include <stdio.h>
 #endif
@@ -147,7 +148,7 @@ void* Init_VFD(void* arg){
 struct _DISPLAY_VFD_* vfd1=(struct _DISPLAY_VFD_*)arg;
 unsigned char ret=0,estado,memoria;
 const unsigned char SIZE_CMD=7;//numero de comandos
-unsigned char s[SIZE_CMD]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
+const unsigned char s[SIZE_CMD]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
 #if (debug_level1==1) 
    printf("\nInit VFD., Send cmds:\n");
@@ -156,8 +157,8 @@ unsigned char i=0;
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   
  while(!ret){
 	switch(estado){
-		case 1:pthread_mutex_init(&mutex_init_VFD);
-		       pthread_cond_init(&cond_init_TX_VFD);estado++;break;
+		case 1:pthread_mutex_init(&mutex_init_VFD,NULL);
+		       pthread_cond_init(&cond_init_TX_VFD,NULL);estado++;break;
 		case 2:if(!pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx))//ret==0 :all OK
 	                  errorCritico("error de creacion de Proc Tx VFD");
 		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
