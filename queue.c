@@ -123,16 +123,16 @@ void* SubProceso_Tx_VFD(void* arg) {
 	unsigned char estado124,ret=0;
 	while(!ret){
 	 switch(estado124){
-	   case 1:pthread_cond_wait(&cond_init_TX_VFD,mutex_init_VFD);//esperamos cond y liberamos mutex	
+	   case 1:pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
              estado124++;break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
-	   case 3:pthread_mutex_lock(mutex_init_VFD);estado124++;break;
+	   case 3:pthread_mutex_lock(&mutex_init_VFD);estado124++;break;
 	   case 4:if(dequeue(q,&data)){estado124++;}
 	          else{if(q->v->config.bits.init_VFD) //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
-				   else{pthread_mutex_unlock(mutex_init_VFD);}}
+				   else{pthread_mutex_unlock(&mutex_init_VFD);}}
 			  break;
-	   case 5:pthread_mutex_unlock(mutex_init_VFD);
+	   case 5:pthread_mutex_unlock(&mutex_init_VFD);
 	          printf("\nEstamos Procesando el dato");estado124++;break;
 	   case 6:printf("\n Ya se proceso y se envio el dato");estado124++;break;
 	   case 7:estado124=3;break;//ciclo de nuevo
@@ -143,9 +143,9 @@ return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
 
 //Proceso  unico de padre unico  y sin instancias
-void* Init_VFD(void* arg){
-unsigned char ret=0,estado,memoria;  
+void* Init_VFD(void* arg){  
 struct _DISPLAY_VFD_* vfd1=(struct _DISPLAY_VFD_*)arg;
+unsigned char ret=0,estado,memoria;
 const unsigned char SIZE_CMD=7;//numero de comandos
 unsigned char s[SIZE_CMD]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
@@ -160,29 +160,26 @@ unsigned char i=0;
 		       pthread_cond_init(&cond_init_TX_VFD);estado++;break;
 		case 2:if(!pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx))//ret==0 :all OK
 	                  errorCritico("error de creacion de Proc Tx VFD");
-		       estado++;break;
+		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
+			   estado++;break;
 	    case 3:pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
 		case 4:pthread_mutex_lock(&mutex_init_VFD);estado++;break;
 		case 5:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
         case 6:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
 		case 7:if(++i==SIZE_CMD)estado124++;else{estado124=10;}break;
-        case 10:estado=0;ret=TRUE;break;
+        case 10:vfd.config.bits.init_VFD=TRUE;
+		        estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
-
-  if(ret==3){
-       vfd.config.bits.init_VFD=TRUE;
-       vfd.config.bits.Proc_VFD_Tx_running=FALSE;}
-  else errorCritico("\nNo se inizializa el display\n");	   	  
 #if (debug_level1==1) 
-   printf("\nInit VFD, Terminado  result=%d\n",ret);
+   printf("\nSubProceso Init VFD, Terminado \n");
 #endif  
 }//fin init VFD -------------------------------------------------------------------
 
 
 
 void Terminar_subProcesos(void){
-    pthread_join(Proc_Tx_VFD,NULL);
-	pthread_mutex_destroy(&q->lock);
+    //pthread_join(Proc_Tx_VFD,NULL);
+	//pthread_mutex_destroy(&q->lock);
 }//terminar subprocesos+++++++++++++++++++++++++
 
 
