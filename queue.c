@@ -142,7 +142,8 @@ void* SubProceso_Tx_VFD(void* arg) {
 	          if(dequeue(q,&data)){estado124++;}
 	          else{if(q->v->config.bits.init_VFD) //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
-				   else{pthread_mutex_unlock(&mutex_init_VFD);}}
+				   else{pthread_mutex_unlock(&mutex_init_VFD);
+				        estado124=3;}}
 			  break;
 	   case 5:printf(" 1 ");
 	          pthread_mutex_unlock(&mutex_init_VFD);
@@ -150,7 +151,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 			  estado124++;
 			  break;
 	   case 6:printf("\n Ya se proceso y se envio el dato");estado124++;break;
-	   case 7:estado124=3;break;//ciclo de nuevo
+	   case 7:estado124=4;break;//ciclo de nuevo
        case 10:q->v->config.bits.Proc_VFD_Tx_running=FALSE;
 	           ret=TRUE;estado124=0;break;
 	   default:estado124=1;break;}}//fin switch y while
@@ -183,11 +184,12 @@ unsigned char i=0;
 			   estado++;break;
 	    case 3:pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
 		case 4:pthread_mutex_lock(&mutex_init_VFD);estado++;break;
-		case 5:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
-        case 6:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
-		case 7:if(++i<SIZE_CMD)estado=3;else{estado=10;}break;
-        case 10:vfd.config.bits.init_VFD=TRUE;
-		        estado=0;ret=TRUE;break;
+		case 5:if(VFDcommand(s[i]))estado=7;else{estado++;}break; // init display  ESC@= 1BH,40H
+        case 6:pthread_mutex_unlock(&mutex_init_VFD);estado=4;break;
+		case 7:if(++i<SIZE_CMD)estado=5;else{estado++;}break;
+		case 8:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
+        case 9:vfd.config.bits.init_VFD=TRUE;
+		       estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
 #if (debug_level1==1) 
    printf("\nSubProceso Init VFD, Terminado \n");
