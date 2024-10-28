@@ -5,6 +5,7 @@
 
 
 void configPuertos(void){
+  printf("\n       Started Configuracion de Puertos");
   pinMode(BIT0_PIN,OUTPUT);
   pinMode(BIT1_PIN,OUTPUT);
   pinMode(BIT2_PIN,OUTPUT);
@@ -15,7 +16,7 @@ void configPuertos(void){
   pinMode(WR_PIN  ,OUTPUT);
   pinMode(R_BUSY_PIN,OUTPUT);
 #if (debug_level1==1) 
-  printf("\nConfigurando Puertos");
+  printf("\r\033[0;32m[ ok ]\033[0m");
 #endif  
 }//fin init puertos++++++++++++++++++++++++
 
