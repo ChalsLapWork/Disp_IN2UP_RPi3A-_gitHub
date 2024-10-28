@@ -109,13 +109,13 @@ return TRUE;
 unsigned char dequeue(FIFO_VFD *q,struct VFD_DATA *v ) {	
     if(is_empty_Queue(q)) 
            return FALSE;//0:No se completo la operacion
-    v->x=q->Xdata[q->tail];
-	v->y=q->Ydata[q->tail];
-	v->p=q->Pdata[q->tail];
+    v->x=q->Xdata[q->head];
+	v->y=q->Ydata[q->head];
+	v->p=q->Pdata[q->head];
 	#if (debug_level1==1)
-	   q->Xdata[q->tail]=0;
-	   q->Ydata[q->tail]=0;
-	   q->Pdata[q->tail]=0;
+	   q->Xdata[q->head]=0;
+	   q->Ydata[q->head]=0;
+	   q->Pdata[q->head]=0;
 	#endif   
 	q->nLibres++;q->nOcupados--;
     q->head = (q->head + 1) % SIZE_MAX_FIFO;
@@ -144,7 +144,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
 				   else{pthread_mutex_unlock(&mutex_init_VFD);}}
 			  break;
-	   case 5:printf(" 4 ");
+	   case 5:printf(" 1 ");
 	          pthread_mutex_unlock(&mutex_init_VFD);
 	          printf("\nEstamos Procesando el dato %x,%x,%x",data.x,data.y,data.p);
 			  estado124++;
