@@ -173,9 +173,11 @@ unsigned char i=0;
  while(!ret){
 	switch(estado){
 		case 1:pthread_mutex_init(&mutex_init_VFD,NULL);
-		       pthread_cond_init(&cond_init_TX_VFD,NULL);estado++;break;
+		       pthread_cond_init(&cond_init_TX_VFD,NULL);
+			    printf("\n init mutexs");
+			    estado++;break;
 		case 2:switch(pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx)){//ret==0 :all OK	
-				case 0:break;//todo ok
+				case 0:printf(" -ok- ");break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
 				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
 				case EPERM:errorCritico("Permisos Insuficientes,Error Proc Tx VFD");break;
