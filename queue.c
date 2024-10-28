@@ -142,7 +142,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 				   else{pthread_mutex_unlock(&mutex_init_VFD);}}
 			  break;
 	   case 5:pthread_mutex_unlock(&mutex_init_VFD);
-	          printf("\nEstamos Procesando el dato");
+	          printf("\nEstamos Procesando el dato %x,%x,%x",data.x,data.y,data.p);
 			  estado124++;
 			  break;
 	   case 6:printf("\n Ya se proceso y se envio el dato");estado124++;break;
