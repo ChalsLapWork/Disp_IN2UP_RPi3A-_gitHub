@@ -16,7 +16,8 @@ void configPuertos(void){
   pinMode(WR_PIN  ,OUTPUT);
   pinMode(R_BUSY_PIN,OUTPUT);
 #if (debug_level1==1) 
-  printf("\r\033[0;32m[ ok ]\033[0m");
+   //printf("\r\033[0;32m[ ok ]\033[0m");
+    NoErrorOK();
 #endif  
 }//fin init puertos++++++++++++++++++++++++
 

@@ -46,7 +46,7 @@ void init_queues(void){
 	init_FIFO_General_1byte(&vfd.x,&buffer6[0],SIZE_BUFFER6);
     init_FIFO_General_1byte(&vfd.y,&buffer7[0],SIZE_BUFFER6);
     init_FIFO_General_1byte(&vfd.p,&buffer8[0],SIZE_BUFFER6);
-     	  
+    printf("\n       Iniciando queueus");	  
     vfd.config.bytes1=0;//init all parameter into zero
     vfd.f1.append=vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
@@ -54,15 +54,16 @@ void init_queues(void){
 	vfdtx.v=&vfd;//misma estructura en los dos lados,
 	init_Queue_with_Thread(&vfdtx);//fifos Transmisor data al Display
 	vfd.config.bits.recurso_VFD_Ocupado=TRUE;//recurso ocupado, VFD nadie lo puede usar
+	printf("\n       Creando Proceso Init VFD");
 	switch(pthread_create(&Proc_Init_VFD,NULL,Init_VFD,&vfd)){
-		case 0:break;
+		case 0:NoErrorOK();break;
 		case EAGAIN:errorCritico("Recursos insuficientes,Error de hilo init VFD");break;
 		case EINVAL:errorCritico("Arg invalidos,Error de hilo init VFD");break;
 		case EPERM:errorCritico("Permisos Insuficientes,Error de hilo init VFD");break;
 		default:errorCritico("Error desconocido de hilo init VFD");break;}
 	pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
 #if (debug_level1==1) 
-  printf("\nQueues Inizializadas");
+   NoErrorOK();
 #endif  
 
 }//fin init queue++++++++++
@@ -166,7 +167,7 @@ const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
 #if (debug_level1==1) 
-   printf("\nInit VFD., Send cmds:\n");
+   printf("\n       Iniziando mutex y semaforos");
 #endif  
   if(vfd1->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   
@@ -174,11 +175,11 @@ unsigned char i=0;
 	switch(estado){
 		case 1:pthread_mutex_init(&mutex_init_VFD,NULL);
 		       pthread_cond_init(&cond_init_TX_VFD,NULL);
-			    printf("\ninit mutexs");
+			    NoErrorOK();
 			    estado++;break;
-		case 2:printf("\nCreando Hilo Transmisor");
+		case 2:printf("\n       Creando Hilo Transmisor");
 		       switch(pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx)){//ret==0 :all OK	
-				case 0:printf(" -ok- ");break;//todo ok
+				case 0:NoErrorOK();break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
 				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
 				case EPERM:errorCritico("Permisos Insuficientes,Error Proc Tx VFD");break;
