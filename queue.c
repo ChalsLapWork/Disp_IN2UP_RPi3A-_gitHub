@@ -7,6 +7,7 @@
   #include <stdio.h>
 #endif
 #include <pthread.h>
+#include <errno.h>
 
 typedef struct{
   unsigned char Xdata[SIZE_MAX_FIFO];
