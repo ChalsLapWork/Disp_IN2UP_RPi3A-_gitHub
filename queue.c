@@ -164,8 +164,11 @@ unsigned char i=0;
 	switch(estado){
 		case 1:pthread_mutex_init(&mutex_init_VFD,NULL);
 		       pthread_cond_init(&cond_init_TX_VFD,NULL);estado++;break;
-		case 2:if(!pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx))//ret==0 :all OK
-	                  errorCritico("error de creacion de Proc Tx VFD");
+		case 2:switch(pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&vfdtx)){//ret==0 :all OK	
+				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
+				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
+				case EPERM:errorCritico("Permisos Insuficientes,Error Proc Tx VFD");break;
+				default:errorCritico("Error desconocido Proc Tx VFD");break;}
 		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
 			   estado++;break;
 	    case 3:pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
