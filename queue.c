@@ -129,19 +129,23 @@ void* SubProceso_Tx_VFD(void* arg) {
 	unsigned char estado124,ret=0;
 	while(!ret){
 	 switch(estado124){
-	   case 1:if(vfd.config.bits.init_VFD==0)
+	   case 1:printf(" 1 ");
+	          if(vfd.config.bits.init_VFD==0)
 	               pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
               estado124++;break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
-	   case 3:if(vfd.config.bits.init_VFD==0)
+	   case 3:printf(" 2 ");
+	          if(vfd.config.bits.init_VFD==0)
 	             pthread_mutex_lock(&mutex_init_VFD);	 
 			   estado124++;break;
-	   case 4:if(dequeue(q,&data)){estado124++;}
+	   case 4:printf(" 3 ");
+	          if(dequeue(q,&data)){estado124++;}
 	          else{if(q->v->config.bits.init_VFD) //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
 				   else{pthread_mutex_unlock(&mutex_init_VFD);}}
 			  break;
-	   case 5:pthread_mutex_unlock(&mutex_init_VFD);
+	   case 5:printf(" 4 ");
+	          pthread_mutex_unlock(&mutex_init_VFD);
 	          printf("\nEstamos Procesando el dato %x,%x,%x",data.x,data.y,data.p);
 			  estado124++;
 			  break;
