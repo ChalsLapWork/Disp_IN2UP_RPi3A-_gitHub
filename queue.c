@@ -186,7 +186,8 @@ unsigned char i=0;
 				default:errorCritico("Error desconocido Proc Tx VFD");break;}
 		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
 			   estado++;break;
-	    case 3:pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
+	    case 3:printf("\n       LLenando los FIFOs para Transmitir");
+		       pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
 		case 4:pthread_mutex_lock(&mutex_init_VFD);estado++;break;
 		case 5:if(VFDcommand(s[i]))estado=7;else{estado++;}break; // init display  ESC@= 1BH,40H
         case 6:pthread_mutex_unlock(&mutex_init_VFD);estado=4;break;
@@ -196,7 +197,9 @@ unsigned char i=0;
 		       estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
 #if (debug_level1==1) 
-   printf("\nSubProceso Init VFD, Terminado \n");
+    NoErrorOK();
+    printf("\n       Sub Proceso Init Terminado");
+	NoErrorOK();
 #endif  
 return NULL;
 }//fin init VFD -------------------------------------------------------------------
