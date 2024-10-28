@@ -167,7 +167,7 @@ unsigned char i=0;
 		case 4:pthread_mutex_lock(&mutex_init_VFD);estado++;break;
 		case 5:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
         case 6:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
-		case 7:if(++i==SIZE_CMD)estado124++;else{estado124=10;}break;
+		case 7:if(++i==SIZE_CMD)estado++;else{estado=10;}break;
         case 10:vfd.config.bits.init_VFD=TRUE;
 		        estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
