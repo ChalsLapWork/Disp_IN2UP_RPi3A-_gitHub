@@ -174,7 +174,7 @@ unsigned char i=0;
 #if (debug_level1==1) 
    printf("\nSubProceso Init VFD, Terminado \n");
 #endif  
-return NULL
+return NULL;
 }//fin init VFD -------------------------------------------------------------------
 
 
