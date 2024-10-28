@@ -146,9 +146,9 @@ return NULL;
 //Proceso  unico de padre unico  y sin instancias
 void* Init_VFD(void* arg){  
 struct _DISPLAY_VFD_* vfd1=(struct _DISPLAY_VFD_*)arg;
-unsigned char ret=0,estado,memoria;
+unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
-const unsigned char s[SIZE_CMD]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
+const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
 #if (debug_level1==1) 
    printf("\nInit VFD., Send cmds:\n");
@@ -174,6 +174,7 @@ unsigned char i=0;
 #if (debug_level1==1) 
    printf("\nSubProceso Init VFD, Terminado \n");
 #endif  
+return NULL
 }//fin init VFD -------------------------------------------------------------------
 
 
