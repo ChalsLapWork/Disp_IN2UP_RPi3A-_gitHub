@@ -129,8 +129,9 @@ void* SubProceso_Tx_VFD(void* arg) {
 	unsigned char estado124,ret=0;
 	while(!ret){
 	 switch(estado124){
-	   case 1:pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
-             estado124++;break;//start para iniciar el proceso
+	   case 1:if(vfd.config.bits.init_VFD==0)
+	               pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
+              estado124++;break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
 	   case 3:if(vfd.config.bits.init_VFD==0)
 	             pthread_mutex_lock(&mutex_init_VFD);	 
