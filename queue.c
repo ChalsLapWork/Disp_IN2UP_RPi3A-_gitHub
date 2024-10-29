@@ -170,7 +170,7 @@ unsigned char i=0;
    printf("\n       Iniziando mutex y semaforos");
 #endif  
   if(vfd1->config.bits.init_VFD){
-	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   
+	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
 	switch(estado){
 		case 1:pthread_mutex_init(&mutex_init_VFD,NULL);
@@ -186,18 +186,20 @@ unsigned char i=0;
 				default:errorCritico("Error desconocido Proc Tx VFD");break;}
 		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
 			   estado++;break;
-	    case 3:printf("\n       LLenando los FIFOs para Transmitir");
-		       pthread_cond_signal(&cond_init_TX_VFD);estado++;break;//start hilo transmisor
-		case 4:pthread_mutex_lock(&mutex_init_VFD);estado++;break;
+	    case 3:printf("\n        comenzar a llenar los FIFOs para Transmitir");
+		       pthread_cond_signal(&cond_init_TX_VFD);
+			   estado++;break;//start hilo transmisor
+		case 4:pthread_mutex_lock(&mutex_init_VFD);
+		       NoErrorOK();
+			   estado++;break;
 		case 5:if(VFDcommand(s[i]))estado=7;else{estado++;}break; // init display  ESC@= 1BH,40H
         case 6:pthread_mutex_unlock(&mutex_init_VFD);estado=4;break;
 		case 7:if(++i<SIZE_CMD)estado=5;else{estado++;}break;
 		case 8:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
         case 9:vfd.config.bits.init_VFD=TRUE;
-		       estado=0;ret=TRUE;break;
+		       estado=0;ret=TRUE; NoErrorOK();break;
 		default:estado=1;break;}}//fin switch while 
 #if (debug_level1==1) 
-    NoErrorOK();
     printf("\n       Sub Proceso Init Terminado");
 	NoErrorOK();
 #endif  
