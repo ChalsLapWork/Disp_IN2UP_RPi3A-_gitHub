@@ -130,7 +130,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 	while(!ret){
 	 switch(estado124){
 	   case 1:NoErrorOK();
-	        printf("\n       Lectura de init=%d",vfd.config.bits.init_VFD);
+	          printf("\n       Lectura de init=%d",vfd.config.bits.init_VFD);
 	          if(vfd.config.bits.init_VFD==0)
 	               pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
               estado124++;
