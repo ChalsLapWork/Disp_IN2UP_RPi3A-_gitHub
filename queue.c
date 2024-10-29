@@ -127,8 +127,8 @@ return TRUE;
 void* SubProceso_Tx_VFD(void* arg) {
     FIFO_VFD* q = (FIFO_VFD*)arg;
 	struct VFD_DATA data;
-	unsigned char estado124,ret=0;
-	printf("\n       Proceso  Transmissor a VFD Iniziando")
+	unsigned char estado124;
+	printf("\n       Proceso  Transmissor a VFD Iniziando");
 	while(!ret){
 	 switch(estado124){
 	   case 1:NoErrorOK();
