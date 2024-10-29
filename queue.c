@@ -131,14 +131,14 @@ void* SubProceso_Tx_VFD(void* arg) {
 	while(!ret){
 	 switch(estado124){
 	   case 1:NoErrorOK();
-	          printf("\n       Lectura de init=%d",vfd.config.bits.init_VFD);
+	          printf("\n       Tx, Lectura de init=%d",vfd.config.bits.init_VFD);
 	          if(vfd.config.bits.init_VFD==0)
 	               pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
               estado124++;
 			  NoErrorOK();
 			  break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
-	   case 3:printf("\n       Esperando recurso Queue");
+	   case 3:printf("\n       Tx, Esperando recurso Queue");
 	          if(vfd.config.bits.init_VFD==0)
 	             pthread_mutex_lock(&mutex_init_VFD);	 
 			   estado124++;break;
@@ -146,11 +146,11 @@ void* SubProceso_Tx_VFD(void* arg) {
 	   case 5:if(dequeue(q,&data)){estado124++;}
 	          else{if(q->v->config.bits.init_VFD){ //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
-				        printf("\n       Terminando Hilo Transmisor");}
+				        printf("\n       Tx, Terminando Hilo Transmisor");}
 				   else{pthread_mutex_unlock(&mutex_init_VFD);
 				        estado124=3;}}
 			  break;
-	   case 6:printf("\n       Procesando dato:%x,%x,%x",data.x,data.y,data.p);
+	   case 6:printf("\n       Tx, Procesando dato:%x,%x,%x",data.x,data.y,data.p);
 	          pthread_mutex_unlock(&mutex_init_VFD);
 	          NoErrorOK();
 			  estado124++;
@@ -160,7 +160,7 @@ void* SubProceso_Tx_VFD(void* arg) {
        case 10:q->v->config.bits.Proc_VFD_Tx_running=FALSE;
 	           ret=TRUE;estado124=0;NoErrorOK();break;
 	   default:estado124=1;break;}}//fin switch y while
-printf("\n       Hilo TX VFD Apagado");
+printf("\n       Hilo TX VFD Apagado:%d",estado124);
 NoErrorOK();
 sleep(500);	   
 return NULL;
@@ -193,7 +193,7 @@ unsigned char i=0;
 				default:errorCritico("Error desconocido Proc Tx VFD");break;}
 		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
 			   estado++;break;
-	    case 3:printf("\n       comenzar a llenar los FIFOs Init para Transmitir");
+	    case 3:printf("\n       Init, comenzar a llenar los FIFOs Init para Transmitir");
 		       pthread_cond_signal(&cond_init_TX_VFD);
 			   estado++;break;//start hilo transmisor
 		case 4:pthread_mutex_lock(&mutex_init_VFD);
@@ -207,7 +207,7 @@ unsigned char i=0;
 		       estado=0;ret=TRUE; NoErrorOK();break;
 		default:estado=1;break;}}//fin switch while 
 #if (debug_level1==1) 
-    printf("\n       Sub Proceso Init Terminado");
+    printf("\n       Init Sub Proceso Init Terminado");
 	NoErrorOK();
 #endif  
 return NULL;
