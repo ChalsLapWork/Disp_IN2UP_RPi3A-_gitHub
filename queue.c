@@ -150,7 +150,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 				   else{pthread_mutex_unlock(&mutex_init_VFD);
 				        estado124=3;}}
 			  break;
-	   case 6:printf("\n       Tx, Procesando dato:%x,%x,%x",data.x,data.y,data.p);
+	   case 6:printf("\n       Procesando dato:%x,%x,%x",data.x,data.y,data.p);
 	          pthread_mutex_unlock(&mutex_init_VFD);
 	          NoErrorOK();
 			  estado124++;
@@ -205,7 +205,9 @@ unsigned char i=0;
 		case 8:pthread_mutex_unlock(&mutex_init_VFD);estado++;break;
         case 9:vfd.config.bits.init_VFD=TRUE;
 		       estado=0;ret=TRUE; NoErrorOK();break;
-		default:estado=1;break;}}//fin switch while 
+		default:estado=1;break;}
+		printf("\n       estado=%d",estado);
+		}//fin switch while 
 #if (debug_level1==1) 
     printf("\n       Init Sub Proceso Init Terminado");
 	NoErrorOK();
