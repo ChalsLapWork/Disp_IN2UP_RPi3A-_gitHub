@@ -24,7 +24,7 @@ int main(void){
   configPuertos();
   init_queues();
   
-  printf("\n       Programa finalizado");
+  printf("\n       Hilo Principal Terminado");
   NoErrorOK();
   printf("\n ");
   pthread_exit(NULL);//espera alos hijos en la memoria para  que los hilos hijos terminen para que vivan hasta sus ultimas lineas de codigo

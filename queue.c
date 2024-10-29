@@ -126,13 +126,16 @@ void* SubProceso_Tx_VFD(void* arg) {
     FIFO_VFD* q = (FIFO_VFD*)arg;
 	struct VFD_DATA data;
 	unsigned char estado124,ret=0;
-	printf("\n       Proceso  Transmissor a VFD Iniziando");
+	printf("\n       Proceso  Transmissor a VFD Iniciando");
 	while(!ret){
 	 switch(estado124){
 	   case 1:NoErrorOK();
+	        printf("\n       Lectura de init=%d",vfd.config.bits.init_VFD);
 	          if(vfd.config.bits.init_VFD==0)
 	               pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
-              estado124++;break;//start para iniciar el proceso
+              estado124++;
+			  NoErrorOK();
+			  break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
 	   case 3:printf("\n       Esperando recurso Queue");
 	          if(vfd.config.bits.init_VFD==0)
@@ -186,7 +189,7 @@ unsigned char i=0;
 				default:errorCritico("Error desconocido Proc Tx VFD");break;}
 		       pthread_detach(Proc_Tx_VFD);//el hilo ahora es independiente
 			   estado++;break;
-	    case 3:printf("\n        comenzar a llenar los FIFOs para Transmitir");
+	    case 3:printf("\n       comenzar a llenar los FIFOs Init para Transmitir");
 		       pthread_cond_signal(&cond_init_TX_VFD);
 			   estado++;break;//start hilo transmisor
 		case 4:pthread_mutex_lock(&mutex_init_VFD);
