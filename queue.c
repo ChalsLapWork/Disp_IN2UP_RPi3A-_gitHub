@@ -142,7 +142,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 	   case 5:if(dequeue(q,&data)){estado124++;}
 	          else{if(q->v->config.bits.init_VFD){ //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
-				        printf("\n       Terminando Hilo Transmisor");
+				        printf("\n       Terminando Hilo Transmisor");}
 				   else{pthread_mutex_unlock(&mutex_init_VFD);
 				        estado124=3;}}
 			  break;
