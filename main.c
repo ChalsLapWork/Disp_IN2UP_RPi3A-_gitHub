@@ -26,7 +26,8 @@ int main(void){
   
   printf("\n       Programa finalizado");
   NoErrorOK();
-  pthread_exit(NULL);
+  printf("\n ");
+  pthread_exit(NULL);//espera alos hijos en la memoria para  que los hilos hijos terminen para que vivan hasta sus ultimas lineas de codigo
 //for(;;){
    //digitalWrite(BIT5_PIN,HIGH);
    //delay(500);

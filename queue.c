@@ -140,8 +140,9 @@ void* SubProceso_Tx_VFD(void* arg) {
 			   estado124++;break;
 	   case 4:NoErrorOK();estado124++;break;
 	   case 5:if(dequeue(q,&data)){estado124++;}
-	          else{if(q->v->config.bits.init_VFD) //todavia no acaba de init el vfd ??
+	          else{if(q->v->config.bits.init_VFD){ //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
+				        printf("\n       Terminando Hilo Transmisor");
 				   else{pthread_mutex_unlock(&mutex_init_VFD);
 				        estado124=3;}}
 			  break;
@@ -153,7 +154,7 @@ void* SubProceso_Tx_VFD(void* arg) {
 	   case 7:estado124++;break;
 	   case 8:estado124=5;break;//ciclo de nuevo
        case 10:q->v->config.bits.Proc_VFD_Tx_running=FALSE;
-	           ret=TRUE;estado124=0;break;
+	           ret=TRUE;estado124=0;NoErrorOK();break;
 	   default:estado124=1;break;}}//fin switch y while
 return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
