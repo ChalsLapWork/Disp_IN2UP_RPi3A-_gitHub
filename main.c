@@ -22,12 +22,12 @@ int main(void){
   init_queues();
   
   signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
-for(;;){
-   digitalWrite(BIT5_PIN,HIGH);
-   delay(500);
-   digitalWrite(BIT5_PIN,LOW);
-
-}//fin for++++++++++++++++++++
+  printf("\n       Programa finalizado");
+  NoErrorOK();
+//for(;;){
+   //digitalWrite(BIT5_PIN,HIGH);
+   //delay(500);
+   //digitalWrite(BIT5_PIN,LOW);}//fin for++++++++++++++++++++
 
 
 
