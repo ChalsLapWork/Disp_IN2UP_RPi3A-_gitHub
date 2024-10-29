@@ -159,6 +159,9 @@ void* SubProceso_Tx_VFD(void* arg) {
        case 10:q->v->config.bits.Proc_VFD_Tx_running=FALSE;
 	           ret=TRUE;estado124=0;NoErrorOK();break;
 	   default:estado124=1;break;}}//fin switch y while
+printf("\n       Hilo TX VFD Apagado");
+NoErrorOK();
+sleep(500);	   
 return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
 
