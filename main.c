@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include "errorController.h"
+#include <pthread.h>
 
 
 void signal_handler(int signalnum){
