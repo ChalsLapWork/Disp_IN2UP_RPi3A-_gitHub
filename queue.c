@@ -54,6 +54,7 @@ void init_queues(void){
 	vfdtx.v=&vfd;//misma estructura en los dos lados,
 	init_Queue_with_Thread(&vfdtx);//fifos Transmisor data al Display
 	vfd.config.bits.recurso_VFD_Ocupado=TRUE;//recurso ocupado, VFD nadie lo puede usar
+	NoErrorOK();
 	printf("\n       Creando Proceso Init VFD");
 	switch(pthread_create(&Proc_Init_VFD,NULL,Init_VFD,&vfd)){
 		case 0:NoErrorOK();break;
@@ -62,9 +63,6 @@ void init_queues(void){
 		case EPERM:errorCritico("Permisos Insuficientes,Error de hilo init VFD");break;
 		default:errorCritico("Error desconocido de hilo init VFD");break;}
 	pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
-#if (debug_level1==1) 
-   NoErrorOK();
-#endif  
 
 }//fin init queue++++++++++
 

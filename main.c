@@ -19,12 +19,13 @@ void signal_handler(int signalnum){
 int main(void){
   printf("\nInsight v3");
   wiringPiSetup();
+  signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
   configPuertos();
   init_queues();
   
-  signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
   printf("\n       Programa finalizado");
   NoErrorOK();
+  pthread_exit(NULL);
 //for(;;){
    //digitalWrite(BIT5_PIN,HIGH);
    //delay(500);
