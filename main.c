@@ -6,6 +6,7 @@
 #include "VFDisplay.h"
 #include <signal.h>
 #include <unistd.h>
+#include "errorController.h"
 
 
 void signal_handler(int signalnum){
