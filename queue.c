@@ -206,7 +206,7 @@ unsigned char i=0;
         case 9:vfd.config.bits.init_VFD=TRUE;
 		       estado=0;ret=TRUE; NoErrorOK();break;
 		default:estado=1;break;}
-		printf("\n       estado=%d",estado);
+		printf(" e=%d ",estado);
 		}//fin switch while 
 #if (debug_level1==1) 
     printf("\n       Init Sub Proceso Init Terminado");
