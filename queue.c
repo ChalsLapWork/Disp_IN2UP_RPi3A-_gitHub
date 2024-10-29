@@ -128,31 +128,32 @@ void* SubProceso_Tx_VFD(void* arg) {
     FIFO_VFD* q = (FIFO_VFD*)arg;
 	struct VFD_DATA data;
 	unsigned char estado124,ret=0;
+	printf("\n       Proceso  Transmissor a VFD Iniziando")
 	while(!ret){
 	 switch(estado124){
-	   case 1:printf(" 1 ");
+	   case 1:NoErrorOK();
 	          if(vfd.config.bits.init_VFD==0)
 	               pthread_cond_wait(&cond_init_TX_VFD,&mutex_init_VFD);//esperamos cond y liberamos mutex	
               estado124++;break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
-	   case 3:printf(" 2 ");
+	   case 3:printf("\n       Esperando recurso Queue");
 	          if(vfd.config.bits.init_VFD==0)
 	             pthread_mutex_lock(&mutex_init_VFD);	 
 			   estado124++;break;
-	   case 4:printf(" 3 ");
-	          if(dequeue(q,&data)){estado124++;}
+	   case 4:NoErrorOK();estado124++;break;
+	   case 5:if(dequeue(q,&data)){estado124++;}
 	          else{if(q->v->config.bits.init_VFD) //todavia no acaba de init el vfd ??
 			            estado124=10;//se termino de inizializar el VFD el hilo padre ha muerto
 				   else{pthread_mutex_unlock(&mutex_init_VFD);
 				        estado124=3;}}
 			  break;
-	   case 5:printf(" 1 ");
+	   case 6:printf("\n       Procesando dato:%x,%x,%x",data.x,data.y,data.p);
 	          pthread_mutex_unlock(&mutex_init_VFD);
-	          printf("\nEstamos Procesando el dato %x,%x,%x",data.x,data.y,data.p);
+	          NoErrorOK();
 			  estado124++;
 			  break;
-	   case 6:printf("\n Ya se proceso y se envio el dato");estado124++;break;
-	   case 7:estado124=4;break;//ciclo de nuevo
+	   case 7:estado124++;break;
+	   case 8:estado124=5;break;//ciclo de nuevo
        case 10:q->v->config.bits.Proc_VFD_Tx_running=FALSE;
 	           ret=TRUE;estado124=0;break;
 	   default:estado124=1;break;}}//fin switch y while
