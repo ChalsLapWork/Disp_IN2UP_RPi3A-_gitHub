@@ -208,10 +208,10 @@ unsigned char i=0;
 		default:estado=1;break;}
 		printf(" e=%d ",estado);
 		}//fin switch while 
-#if (debug_level1==1) 
-    printf("\n       Init Sub Proceso Init Terminado");
-	NoErrorOK();
-#endif  
+
+printf("\n       Init Sub Proceso Init Terminado");
+NoErrorOK();
+sleep(400);
 return NULL;
 }//fin init VFD -------------------------------------------------------------------
 
