@@ -19,7 +19,7 @@ void signal_handler(int signalnum){
 
 int main(void){
   printf("\nInsight v3");
-  wiringPiSetup();
+  wiringPiSetup();  
   signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
   configPuertos();
   init_queues();

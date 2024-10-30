@@ -171,8 +171,8 @@ unsigned char i=0;
 		case 4:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
 		case 5:if(++i<SIZE_CMD)estado=4;else{estado++;}break;
 		case 6:vfd.config.bits.init_VFD=TRUE;estado++;break;
-		case 8:pthread_cond_signal(&q->cond_init_TX_VFD);estado++;break;
-        case 9:estado=0;ret=TRUE;break;
+		case 7:pthread_cond_signal(&q->cond_init_TX_VFD);estado++;break;
+        case 8:estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
         pthread_join(Proc2_Tx_VFD,NULL);
 	    printf("\n       Init Sub Proceso Init Terminado");
