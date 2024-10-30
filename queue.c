@@ -45,7 +45,6 @@ unsigned char  buffer8[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el para
 
 void init_queues(void){
 	pthread_t Proc1_Init_VFD;//Proceso para inizializar el VFD
-
 	init_FIFO_General_1byte(&vfd.x,&buffer6[0],SIZE_BUFFER6);
     init_FIFO_General_1byte(&vfd.y,&buffer7[0],SIZE_BUFFER6);
     init_FIFO_General_1byte(&vfd.p,&buffer8[0],SIZE_BUFFER6);
@@ -54,12 +53,12 @@ void init_queues(void){
     vfd.f1.append=vfd_FIFO_push;
 	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
 	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
-	vfdtx.v=&vfd;//misma estructura en los dos lados,
+	qVFDtx.v=&vfd;//misma estructura en los dos lados,
 	init_Queue_with_Thread(&qVFDtx);//fifos Transmisor data al Display
 	vfd.config.bits.recurso_VFD_Ocupado=TRUE;//recurso ocupado, VFD nadie lo puede usar
 	NoErrorOK();
 	printf("\n       Creando Proceso Init VFD");
-	switch(pthread_create(&Proc_Init_VFD,NULL,Init_VFD,&qVFDtx)){
+	switch(pthread_create(&Proc1_Init_VFD,NULL,Init_VFD,&qVFDtx)){
 		case 0:NoErrorOK();break;
 		case EAGAIN:errorCritico("Recursos insuficientes,Error de hilo init VFD");break;
 		case EINVAL:errorCritico("Arg invalidos,Error de hilo init VFD");break;
@@ -67,8 +66,8 @@ void init_queues(void){
 		default:errorCritico("Error desconocido de hilo init VFD");break;}
 	//pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
     pthread_join(Proc1_Init_VFD,NULL);
-	pthread_mutex_destroy(&qVFDtx->mutex_init_VFD);
-    pthread_cond_destroy(&qVFDtx->cond_init_TX_VFD);
+	pthread_mutex_destroy(&qVFDtx.mutex_init_VFD);
+    pthread_cond_destroy(&qVFDtx.cond_init_TX_VFD);
 }//fin init queue++++++++++
 
 
@@ -144,8 +143,8 @@ return NULL;
 
 //Proceso  unico de padre unico  y sin instancias
 void* Init_VFD(void* arg){  //Proceso Productor
+QueueTxVFD *q=(QueueTxVFD*)arg;
 pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
-struct _DISPLAY_VFD_* vfd1=(struct _DISPLAY_VFD_*)arg;
 unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
@@ -291,7 +290,7 @@ const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando
 //volatile unsigned char n=0;	
 //static unsigned char control;
 auto unsigned char ret=0;
-    
+    struct VFD_DATA dato;
     //if(!(vfd.x.ncount<SIZE_BUFFER6))
     //	 return FALSE;//esta muy llena la FIFO, espera un poco
     switch(p){//1100 0000 los dos MSB indican que proqrametro es
@@ -318,10 +317,11 @@ auto unsigned char ret=0;
      //n=vfd.x.appendByte(x,&vfd.x);deprecated
 	 //n+=vfd.y.appendByte(y,&vfd.y);deprecated
 	 //n+=vfd.p.appendByte(p,&vfd.p);deprecated
-     ret=enqueue(&vfdtx,x,y,p);
+	 dato.x=x;dato.y=y;dato.p=p;
+     enqueue(&QueueTxVFD,dato);
 	 //if(n==3){//fifo llena
 	   //   ret=TRUE;}deprecated
-return ret;//ret;
+return TRUE;//ret;
 }//fin vfd_FIFO_push-------------------------------------------
 
 
