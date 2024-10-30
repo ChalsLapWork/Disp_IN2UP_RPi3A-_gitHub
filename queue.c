@@ -33,11 +33,9 @@ typedef struct Queue{
 
 struct _DISPLAY_VFD_ vfd;
 QueueTxVFD qVFDtx;//queue de transmision vfd 
-void init_Queue_with_Thread(FIFO_VFD *q);
-unsigned char dequeue(FIFO_VFD *q,struct VFD_DATA *v );
+void init_Queue_with_Thread(QueueTxVFD *q);
+struct VFD_DATA dequeue(QueueTxVFD  *q);
 void enqueue(QueueTxVFD *q,struct VFD_DATA dato1);
-unsigned char is_full_Queue(FIFO_VFD *q);
-unsigned char is_empty_Queue(FIFO_VFD *q);
 void* SubProceso_Tx_VFD(void* arg);
 
 unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
@@ -85,21 +83,7 @@ void init_Queue_with_Thread(QueueTxVFD *q){
 	  pthread_cond_init(&q->cond_init_TX_VFD,NULL);
 }//fin de init FIFO transmit VFD+++++++++++++++++++++++++
   
-//true:is_Full. False: No_Full  
-unsigned char is_full_Queue(FIFO_VFD *q){
-   // return (q->tail+1)% SIZE_MAX_FIFO == q->head;
-   if(q->nLibres==0)
-       return TRUE;//IS FULL
-   else return FALSE;//0: no esta lleno
-}//FIN DE  is full FIFO tx VFD +++++++++++++++++++++++++
 
-//++++++++++++++++++++++++++++++++++++
-unsigned char is_empty_Queue(FIFO_VFD *q){
- //return q->tail==q->head;
-  if(q->nOcupados==0)
-     return TRUE;//1:vacio fifo
-  else return FALSE;//0:no esta vacio
-}//fin de esta vacia la queue de transmision de VFD ++++++++
 
 //encola regresa TRUE: si esta llena , FALSE: si esta vacia
 void enqueue(QueueTxVFD *q,struct VFD_DATA dato1){
