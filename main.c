@@ -28,7 +28,8 @@ int main(void){
   NoErrorOK();
   printf("\n ");
   sleep(500);//tiempo para transmitir los printf anteriores antes de matar el proceso
-  pthread_exit(NULL);//espera alos hijos en la memoria para  que los hilos hijos terminen para que vivan hasta sus ultimas lineas de codigo
+   
+  //pthread_exit(NULL);//espera alos hijos en la memoria para  que los hilos hijos terminen para que vivan hasta sus ultimas lineas de codigo
 //for(;;){
    //digitalWrite(BIT5_PIN,HIGH);
    //delay(500);
