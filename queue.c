@@ -122,7 +122,7 @@ return data;
 void* SubProceso_Tx_VFD(void* arg) {//consumidor
     QueueTxVFD *q = (QueueTxVFD *)arg;
 	struct VFD_DATA data;
-	unsigned char estado124,ret=0;
+	unsigned char estado124;
 	printf("\n       Proceso  Transmissor a VFD Iniciando");
 	while(!vfd.config.bits.init_VFD||q->size>0){
 	 switch(estado124){
@@ -159,7 +159,7 @@ unsigned char i=0;
 	switch(estado){
 		case 1:NoErrorOK();estado++;break;
 		case 2:printf("\n       Creando Hilo Transmisor");
-		       switch(pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
+		       switch(pthread_create(&Proc2_Tx_VFD,NULL,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
 				case 0:NoErrorOK();break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
 				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
