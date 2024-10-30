@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 typedef struct Node{
   //unsigned char Xdata[SIZE_MAX_FIFO];
@@ -129,7 +130,7 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
 	          printf("\n       Tx, Lectura de init=%d",vfd.config.bits.init_VFD);
 	          estado124++;NoErrorOK();break;//start para iniciar el proceso
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
-	   case 3:struct VFD_DATA data=dequeue(q);
+	   case 3:data=dequeue(q);
 	          estado124++;break;
 	   case 4:printf("\n       Procesando dato:%x,%x,%x",data.x,data.y,data.p);
 	          NoErrorOK();estado124=3;break;
@@ -152,13 +153,13 @@ unsigned char i=0;
 #if (debug_level1==1) 
    printf("\n       Iniziando mutex y semaforos");
 #endif  
-  if(vfd1->config.bits.init_VFD){
+  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
 	switch(estado){
 		case 1:NoErrorOK();estado++;break;
 		case 2:printf("\n       Creando Hilo Transmisor");
-		       switch(pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&QueueTxVFD)){//ret==0 :all OK	
+		       switch(pthread_create(&Proc_Tx_VFD,NULL,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
 				case 0:NoErrorOK();break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
 				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
@@ -289,7 +290,7 @@ unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
 const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
 //volatile unsigned char n=0;	
 //static unsigned char control;
-auto unsigned char ret=0;
+//auto unsigned char ret=0;
     struct VFD_DATA dato;
     //if(!(vfd.x.ncount<SIZE_BUFFER6))
     //	 return FALSE;//esta muy llena la FIFO, espera un poco
@@ -318,7 +319,7 @@ auto unsigned char ret=0;
 	 //n+=vfd.y.appendByte(y,&vfd.y);deprecated
 	 //n+=vfd.p.appendByte(p,&vfd.p);deprecated
 	 dato.x=x;dato.y=y;dato.p=p;
-     enqueue(&QueueTxVFD,dato);
+     enqueue(&qVFDtx,dato);
 	 //if(n==3){//fifo llena
 	   //   ret=TRUE;}deprecated
 return TRUE;//ret;
