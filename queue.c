@@ -69,6 +69,8 @@ void init_queues(void){
     pthread_join(Proc1_Init_VFD,NULL);
 	pthread_mutex_destroy(&qVFDtx.mutex_init_VFD);
     pthread_cond_destroy(&qVFDtx.cond_init_TX_VFD);
+	printf("\n       Comenzamos las otras configuraciones");
+	NoErrorOK();
 }//fin init queue++++++++++
 
 
@@ -132,8 +134,7 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
 	   case 3:data=dequeue(q);
 	          estado124++;break;
-	   case 4:printf("\n       Procesando dato:%x,%x,%x",data.x,data.y,data.p);
-	          NoErrorOK();estado124=3;break;
+	   case 4:if(Transmissor_a_VFD(data))estado124=3;break;
 	   default:estado124=1;break;}}//fin switch y while
 	   q->v->config.bits.Proc_VFD_Tx_running=FALSE;
        printf("\n       Hilo TX VFD Apagado:%d",estado124);
@@ -141,6 +142,135 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
        //sleep(500);	   
 return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
+
+//methodo que se usa en un hilo transmisor VFD+++++++++++++++++++++++
+unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
+unsigned char ret=0,estado1;
+unsigned char *box1,*box0;
+const unsigned char DELAY_TIME=1;
+      
+	  estado1=*(mem+0);
+	  ret=*(mem+1);
+	  box1=mem+2;
+	  box0=mem+3;
+
+      switch(estado1){//DRIVER DE VIDEO
+    	  case 0:estado1++;vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
+    	  case 1:switch(*p){
+					  case 	_BOX_:     if(vfd.bits.b.BOX_enable){
+						                   *box1=*x;estado1++;}
+					  	  	  	       else{estado1=55;}
+					                   break;
+					  case _CHAR_:     estado1=CHARX;break;
+					  case _PUNTO_:    estado1=PUNTOX; break;
+					  case _RAYA_:     break;
+					  case _BOLD_:     estado1=54;break;//debug
+					  case _POS_:      estado1=POSX;break;
+					  case _DDS_BORRAR:estado1=POSX;break;
+					  case _DDS_reZOOM:estado1=POSX;break;
+					  case _DELAY_:    estado1=DELAYUSX;
+					  case _DELAY_US:  estado1=DELAYUSX;break;
+					  case _DELAY_MS:  estado1=DELAYMSX;break;					 
+					  default:estado1=55;break;}break;
+    	  case 2:if(*box0>MAX_BOXES)*box0=0;
+    	         if(*box0==*box1){estado1=0;
+    	                vfd.v.timer=BUSY_K;break;}
+    	         else{if(*box0>*box1){//borrando cuadros
+						pen=0;ibox0=*box0;
+						getBoxPattern(ibox0,&mode,&x1,&y1,&x2,&y2);//box0 se tiene que decrementar despues no antes
+						if(*box0>0)ibox0--;
+						*box0=ibox0;}
+    	              else
+						if(*box1>*box0){
+							pen=1;ibox0=*box0;
+							ibox0++;//incrementamos el valor box0, para alcanzar box1
+							getBoxPattern(ibox0,&mode,&x1,&y1,&x2,&y2);
+							*box0=ibox0;}}
+    	         
+    	         vfd.v.dat[0]=0x1F;
+    	         vfd.v.dat[1]=0x28;vfd.v.dat[2]=0x64;vfd.v.dat[3]=0x11;
+    	         vfd.v.dat[4]=mode;
+    	         vfd.v.dat[5]=pen;		
+    	         coordenadas.coord16=x1;		
+    	         vfd.v.dat[6]=coordenadas.byte[LO];		
+    	         vfd.v.dat[7]=coordenadas.byte[HI];		
+				 coordenadas.coord16=y1;		
+				 vfd.v.dat[8]=coordenadas.byte[LO];		
+				 vfd.v.dat[9]=coordenadas.byte[HI];
+				 coordenadas.coord16=x2;		
+				 vfd.v.dat[10]=coordenadas.byte[LO];		
+				 vfd.v.dat[11]=coordenadas.byte[HI];		
+				 coordenadas.coord16=y2;		
+				 vfd.v.dat[12]=coordenadas.byte[LO];		
+				 vfd.v.dat[13]=coordenadas.byte[HI];
+				 vfd.v.nbytes=14;//bytes a emitir
+				 estado1=33;//emitir los datos; FIN DE CAJAS
+				 break;//fin case 2------------------------------------
+    	  case CHARX:
+    	         vfd.v.dat[0]=*x; //x=vfd.v.dat[13];y=vfd.v.dat[12];p=vfd.v.dat[11];			 
+			     vfd.v.nbytes=1;//bytes a emitir 	EMITIR CHAR
+                 estado1=33;
+                 break;//fin de char
+    	  case POSX:
+    		     vfd.v.dat[0]=0x1F;//INICIA COMANDO DE POSICION
+				 vfd.v.dat[1]=0x24;
+				 vfd.v.dat[2]=vfd.v.dat[13];//variable x
+				 vfd.v.dat[3]=0x00;
+				 vfd.v.dat[4]=vfd.v.dat[12];//variable y
+				 vfd.v.dat[5]=0x00;		
+				 vfd.v.nbytes=6;//bytes a emitir
+				 estado1=33;
+				 break;//fin de posicion
+    	  case PUNTOX:if(menu.b.b.MenuPendiente){ estado1=0;break;}
+    	         vfd.v.dat[0]=0x1F;
+    	         vfd.v.dat[1]=0x28;
+    	         vfd.v.dat[2]=0x64;
+    	         vfd.v.dat[3]=0x10;
+    	         vfd.v.dat[4]=0x01;//pen=1;
+    	         vfd.v.dat[5]=*x;
+    	         vfd.v.dat[6]=0x00;
+    	         vfd.v.dat[7]=*y;
+    	         vfd.v.dat[8]=0x00;
+				 vfd.v.nbytes=9;//bytes a emitir
+				 estado1=33;    
+				 break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
+    	  case 7:if(vfd.v.timer==0)
+    		        if(vfd.bits.b.TxBuffOFF)
+    	    		         estado1=8;
+    	    	         break;
+     	  case 8: switch(menu.contexto.Actual){
+    	    		  case PANTALLA_DDS:vfd.bits.b.DDSon=1;break; 
+    	    		  default:break;}
+    	    	  estado1=54;
+    	    	  break;
+    	  case DELAYUSX:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYUSX+1:usleep(w16.wordx);estado1++;break;
+		  case DELAYUSX+2:estado1=55;break;
+    	  case DELAYMSX:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYMSX+1:usleep(w16.wordx);estado1++;break;
+		  case DELAYMSX+2:estado1=55;break;
+    	  case 33:if(vfd.v.nbytes==vfd.v.index)estado1=54;else{estado1=34;}break;
+    	  case 34:usleep(1000*2);estado1++;break;
+    	  case 35:VFDserial_SendChar(vfd.v.dat[vfd.v.index]);
+     		      vfd.v.dat[vfd.v.index++]=0; 
+                  estado1=33;
+    		      break;//fin de enviar el Buffer
+    	  case 54://esperamos que lleguen los ultimos datos al display
+    		      if(vfd.bits.b.TxBuffOFF){  
+    		    	  menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
+    		    	  cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
+    		    	  estado1=0;}
+    		      break;
+    	  case 55://esperamos ni maiz, fue un delay
+    	      		menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
+    	      	    cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
+    	      		estado1=0;
+    	      		break;
+    	      		            
+    	  default:estado1=0;break;}//fin estado principal-----------------------------------------      
+
+}//transmisor de datos a VFD++++++++++++++++++++++++++++++++
+
 
 //Proceso  unico de padre unico  y sin instancias
 void* Init_VFD(void* arg){  //Proceso Productor

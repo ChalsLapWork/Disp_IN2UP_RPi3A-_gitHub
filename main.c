@@ -27,7 +27,9 @@ int main(void){
   printf("\n       Hilo Principal Terminado");
   NoErrorOK();
   printf("\n ");
-  sleep(500);//tiempo para transmitir los printf anteriores antes de matar el proceso
+  pthread_exit(NULL);//exit(1);
+
+  //sleep(500);//tiempo para transmitir los printf anteriores antes de matar el proceso
    
   //pthread_exit(NULL);//espera alos hijos en la memoria para  que los hilos hijos terminen para que vivan hasta sus ultimas lineas de codigo
 //for(;;){
