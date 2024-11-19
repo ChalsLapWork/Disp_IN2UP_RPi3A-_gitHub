@@ -9,6 +9,8 @@ typedef struct {
     int pins[8];      // Pines GPIO para datos
 } ParallelPort;
 
+void initParallelPort(ParallelPort *port);
+
 
 // Configurar pines como salidas
 void initParallelPort(ParallelPort *port) {
