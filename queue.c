@@ -124,7 +124,7 @@ return data;
 void* SubProceso_Tx_VFD(void* arg) {//consumidor
     QueueTxVFD *q = (QueueTxVFD *)arg;
 	struct VFD_DATA data;
-	unsigned char estado124;
+	unsigned char estado124,mem[4];
 	printf("\n       Proceso  Transmissor a VFD Iniciando");
 	while(!vfd.config.bits.init_VFD||q->size>0){
 	 switch(estado124){
@@ -134,7 +134,7 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
 	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
 	   case 3:data=dequeue(q);
 	          estado124++;break;
-	   case 4:if(Transmissor_a_VFD(data))estado124=3;break;
+	   case 4:if(Transmissor_a_VFD(data,&mem[0]))estado124=3;break;
 	   default:estado124=1;break;}}//fin switch y while
 	   q->v->config.bits.Proc_VFD_Tx_running=FALSE;
        printf("\n       Hilo TX VFD Apagado:%d",estado124);
@@ -148,9 +148,10 @@ unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
 unsigned char ret=0,estado1;
 unsigned char *box1,*box0;
 const unsigned char DELAY_TIME=1;
+const unsigned char CHARX=1,PUNTOX=1,POSX=3,DELAYUSX=4,DELAYMSX=5;
       
-	  estado1=*(mem+0);
-	  ret=*(mem+1);
+   estado1=*(mem+0);
+	   ret=*(mem+1);
 	  box1=mem+2;
 	  box0=mem+3;
 
@@ -221,34 +222,24 @@ const unsigned char DELAY_TIME=1;
 				 vfd.v.nbytes=6;//bytes a emitir
 				 estado1=33;
 				 break;//fin de posicion
-    	  case PUNTOX:if(menu.b.b.MenuPendiente){ estado1=0;break;}
-    	         vfd.v.dat[0]=0x1F;
-    	         vfd.v.dat[1]=0x28;
-    	         vfd.v.dat[2]=0x64;
-    	         vfd.v.dat[3]=0x10;
-    	         vfd.v.dat[4]=0x01;//pen=1;
-    	         vfd.v.dat[5]=*x;
-    	         vfd.v.dat[6]=0x00;
-    	         vfd.v.dat[7]=*y;
-    	         vfd.v.dat[8]=0x00;
-				 vfd.v.nbytes=9;//bytes a emitir
-				 estado1=33;    
-				 break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
-    	  case 7:if(vfd.v.timer==0)
-    		        if(vfd.bits.b.TxBuffOFF)
-    	    		         estado1=8;
-    	    	         break;
-     	  case 8: switch(menu.contexto.Actual){
-    	    		  case PANTALLA_DDS:vfd.bits.b.DDSon=1;break; 
-    	    		  default:break;}
-    	    	  estado1=54;
-    	    	  break;
-    	  case DELAYUSX:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYUSX+1:usleep(w16.wordx);estado1++;break;
-		  case DELAYUSX+2:estado1=55;break;
-    	  case DELAYMSX:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYMSX+1:usleep(w16.wordx);estado1++;break;
-		  case DELAYMSX+2:estado1=55;break;
+    	  case PUNTOX:  if(menu.b.b.MenuPendiente){ estado1=0;break;}
+						vfd.v.dat[0]=0x1F;
+						vfd.v.dat[1]=0x28;
+						vfd.v.dat[2]=0x64;
+						vfd.v.dat[3]=0x10;
+						vfd.v.dat[4]=0x01;//pen=1;
+						vfd.v.dat[5]=*x;
+						vfd.v.dat[6]=0x00;
+						vfd.v.dat[7]=*y;
+						vfd.v.dat[8]=0x00;
+						vfd.v.nbytes=9;//bytes a emitir
+	    				estado1=33;    
+				        break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
+    
+    	  case DELAYUSX+0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYUSX+1:usleep(w16.wordx);estado1=55;break;
+    	  case DELAYMSX+0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYMSX+1:usleep(w16.wordx);estado1=55;break;
     	  case 33:if(vfd.v.nbytes==vfd.v.index)estado1=54;else{estado1=34;}break;
     	  case 34:usleep(1000*2);estado1++;break;
     	  case 35:VFDserial_SendChar(vfd.v.dat[vfd.v.index]);
