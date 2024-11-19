@@ -148,7 +148,7 @@ unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
 unsigned char ret=0,estado1;
 unsigned char *box1,*box0;
 const unsigned char DELAY_TIME=1;
-const unsigned char CHARX=1,PUNTOX=1,POSX=3,DELAYUSX=4,DELAYMSX=5;
+enum edos {CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX};
       
    estado1=*(mem+0);
 	   ret=*(mem+1);
