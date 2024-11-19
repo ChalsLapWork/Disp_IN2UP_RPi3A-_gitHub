@@ -156,8 +156,8 @@ enum edos {CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX};
 	  box0=mem+3;
 
       switch(estado1){//DRIVER DE VIDEO
-    	  case 0:estado1++;vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
-    	  case 1:switch(*p){
+    	  case n0:estado1++;vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
+    	  case n1:switch(*p){
 					  case 	_BOX_:     if(vfd.bits.b.BOX_enable){
 						                   *box1=*x;estado1++;}
 					  	  	  	       else{estado1=55;}
@@ -172,11 +172,11 @@ enum edos {CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX};
 					  case _DELAY_:    estado1=DELAYUSX;
 					  case _DELAY_US:  estado1=DELAYUSX;break;
 					  case _DELAY_MS:  estado1=DELAYMSX;break;					 
-					  default:estado1=55;break;}break;
-    	  case 2:if(*box0>MAX_BOXES)*box0=0;
-    	         if(*box0==*box1){estado1=0;
+					  default:estado1=n55;break;}break;
+    	  case n2:if(*box0>MAX_BOXES)*box0=0;
+    	          if(*box0==*box1){estado1=0;
     	                vfd.v.timer=BUSY_K;break;}
-    	         else{if(*box0>*box1){//borrando cuadros
+    	          else{if(*box0>*box1){//borrando cuadros
 						pen=0;ibox0=*box0;
 						getBoxPattern(ibox0,&mode,&x1,&y1,&x2,&y2);//box0 se tiene que decrementar despues no antes
 						if(*box0>0)ibox0--;
@@ -205,12 +205,12 @@ enum edos {CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX};
 				 vfd.v.dat[12]=coordenadas.byte[LO];		
 				 vfd.v.dat[13]=coordenadas.byte[HI];
 				 vfd.v.nbytes=14;//bytes a emitir
-				 estado1=33;//emitir los datos; FIN DE CAJAS
+				 estado1=n33;//emitir los datos; FIN DE CAJAS
 				 break;//fin case 2------------------------------------
     	  case CHARX:
     	         vfd.v.dat[0]=*x; //x=vfd.v.dat[13];y=vfd.v.dat[12];p=vfd.v.dat[11];			 
 			     vfd.v.nbytes=1;//bytes a emitir 	EMITIR CHAR
-                 estado1=33;
+                 estado1=n33;
                  break;//fin de char
     	  case POSX:
     		     vfd.v.dat[0]=0x1F;//INICIA COMANDO DE POSICION
@@ -220,7 +220,7 @@ enum edos {CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX};
 				 vfd.v.dat[4]=vfd.v.dat[12];//variable y
 				 vfd.v.dat[5]=0x00;		
 				 vfd.v.nbytes=6;//bytes a emitir
-				 estado1=33;
+				 estado1=n33;
 				 break;//fin de posicion
     	  case PUNTOX:  if(menu.b.b.MenuPendiente){ estado1=0;break;}
 						vfd.v.dat[0]=0x1F;
@@ -233,32 +233,32 @@ enum edos {CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX};
 						vfd.v.dat[7]=*y;
 						vfd.v.dat[8]=0x00;
 						vfd.v.nbytes=9;//bytes a emitir
-	    				estado1=33;    
+	    				estado1=n33;    
 				        break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
     
     	  case DELAYUSX+0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYUSX+1:usleep(w16.wordx);estado1=55;break;
+    	  case DELAYUSX+1:usleep(w16.wordx);estado1=n55;break;
     	  case DELAYMSX+0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYMSX+1:usleep(w16.wordx);estado1=55;break;
-    	  case 33:if(vfd.v.nbytes==vfd.v.index)estado1=54;else{estado1=34;}break;
-    	  case 34:usleep(1000*2);estado1++;break;
-    	  case 35:VFDserial_SendChar(vfd.v.dat[vfd.v.index]);
+    	  case DELAYMSX+1:usleep(w16.wordx);estado1=n55;break;
+    	  case n33:if(vfd.v.nbytes==vfd.v.index)estado1=n54;else{estado1=n34;}break;
+    	  case n34:usleep(1000*2);estado1++;break;
+    	  case n35:VFDserial_SendChar1(vfd.v.dat[vfd.v.index]);
      		      vfd.v.dat[vfd.v.index++]=0; 
-                  estado1=33;
+                  estado1=n33;
     		      break;//fin de enviar el Buffer
-    	  case 54://esperamos que lleguen los ultimos datos al display
+    	  case n54://esperamos que lleguen los ultimos datos al display
     		      if(vfd.bits.b.TxBuffOFF){  
     		    	  menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
     		    	  cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
-    		    	  estado1=0;}
+    		    	  estado1=n0;}
     		      break;
-    	  case 55://esperamos ni maiz, fue un delay
+    	  case n55://esperamos ni maiz, fue un delay
     	      		menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
     	      	    cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
-    	      		estado1=0;
+    	      		estado1=n0;
     	      		break;
     	      		            
-    	  default:estado1=0;break;}//fin estado principal-----------------------------------------      
+    	  default:estado1=n0;break;}//fin estado principal-----------------------------------------      
 
 }//transmisor de datos a VFD++++++++++++++++++++++++++++++++
 
