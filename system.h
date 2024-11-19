@@ -12,8 +12,8 @@
 #define BIT5_PIN 5
 #define BIT6_PIN 6
 #define BIT7_PIN 7
-#define WR_PIN   8
-#define R_BUSY_PIN 9 //Ready/Busy
+#define WR_PIN   21
+#define R_BUSY_PIN 22 //Ready/Busy
 //**************************************************
 
 // debug Nivel del debugeo numero-1

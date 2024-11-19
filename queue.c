@@ -148,8 +148,8 @@ unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
 unsigned char ret=0,estado1;
 unsigned char *box1,*box0;
 const unsigned char DELAY_TIME=1;
-enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX,n33,n34,
-           n35,n54,n55};
+enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
+           n33,n34,n35,n54};
       
    estado1=*(mem+0);
 	   ret=*(mem+1);
@@ -157,22 +157,23 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX,n33,n34,
 	  box0=mem+3;
 
       switch(estado1){//DRIVER DE VIDEO
-    	  case n0:estado1++;vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
+    	  case n0:estado1++;
+		          vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
     	  case n1:switch(*p){
-					  case 	_BOX_:     if(vfd.bits.b.BOX_enable){
+					  case 	_BOX_:     if(vfd.config.bits.BOX_enable){
 						                   *box1=*x;estado1++;}
-					  	  	  	       else{estado1=55;}
+					  	  	  	       else{estado1=n54;}
 					                   break;
 					  case _CHAR_:     estado1=CHARX;break;
 					  case _PUNTO_:    estado1=PUNTOX; break;
 					  case _RAYA_:     break;
-					  case _BOLD_:     estado1=54;break;//debug
+					  case _BOLD_:     estado1=n54;break;//debug
 					  case _POS_:      estado1=POSX;break;
 					  case _DDS_BORRAR:estado1=POSX;break;
 					  case _DDS_reZOOM:estado1=POSX;break;
-					  case _DELAY_:    estado1=DELAYUSX;
-					  case _DELAY_US:  estado1=DELAYUSX;break;
-					  case _DELAY_MS:  estado1=DELAYMSX;break;					 
+					  case _DELAY_:    estado1=DELAYUSX0;
+					  case _DELAY_US:  estado1=DELAYUSX0;break;
+					  case _DELAY_MS:  estado1=DELAYMSX0;break;					 
 					  default:estado1=n55;break;}break;
     	  case n2:if(*box0>MAX_BOXES)*box0=0;
     	          if(*box0==*box1){estado1=0;
@@ -237,28 +238,17 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX,DELAYMSX,n33,n34,
 	    				estado1=n33;    
 				        break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
     
-    	  case DELAYUSX+0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYUSX+1:usleep(w16.wordx);estado1=n55;break;
-    	  case DELAYMSX+0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYMSX+1:usleep(w16.wordx);estado1=n55;break;
+    	  case DELAYUSX0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYUSX1:usleep(w16.wordx);estado1=n55;break;
+    	  case DELAYMSX0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYMSX1:usleep(w16.wordx);estado1=n55;break;
     	  case n33:if(vfd.v.nbytes==vfd.v.index)estado1=n54;else{estado1=n34;}break;
-    	  case n34:usleep(1000*2);estado1++;break;
-    	  case n35:VFDserial_SendChar1(vfd.v.dat[vfd.v.index]);
+    	  case n34:if(digitalRead(R_BUSY_PIN)==1)estado1++;break;
+    	  case n35:writePort(vfd.v.dat[vfd.v.index]);//VFDserial_SendChar1(vfd.v.dat[vfd.v.index]);
      		      vfd.v.dat[vfd.v.index++]=0; 
                   estado1=n33;
     		      break;//fin de enviar el Buffer
-    	  case n54://esperamos que lleguen los ultimos datos al display
-    		      if(vfd.bits.b.TxBuffOFF){  
-    		    	  menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
-    		    	  cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
-    		    	  estado1=n0;}
-    		      break;
-    	  case n55://esperamos ni maiz, fue un delay
-    	      		menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
-    	      	    cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
-    	      		estado1=n0;
-    	      		break;
-    	      		            
+    	  case n54:cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);estado1=n0;break;
     	  default:estado1=n0;break;}//fin estado principal-----------------------------------------      
 
 }//transmisor de datos a VFD++++++++++++++++++++++++++++++++
@@ -410,12 +400,8 @@ void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
 //Return false|true   TRUE: si se agrego sin problemas
 unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
 const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
-//volatile unsigned char n=0;	
-//static unsigned char control;
-//auto unsigned char ret=0;
-    struct VFD_DATA dato;
-    //if(!(vfd.x.ncount<SIZE_BUFFER6))
-    //	 return FALSE;//esta muy llena la FIFO, espera un poco
+struct VFD_DATA dato;
+const unsigned char DELAY_TIME=1; 
     switch(p){//1100 0000 los dos MSB indican que proqrametro es
     	case _BOX_:if(x==0)
     		            return FALSE; 
