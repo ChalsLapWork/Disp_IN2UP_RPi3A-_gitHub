@@ -18,8 +18,8 @@ void signal_handler(int signalnum){
 }//fin manejador de signal
 
 int main(void){
-  printf("\nInsight v3");
-  wiringPiSetup();  
+  printf("\n       Insight v3, init wiringPi");
+  if(wiringPiSetup()==-1){SiError();}else{NoErrorOK();}  
   signal(SIGINT,signal_handler);//asocia el manejador de salida del programa
   configPuertos();
   init_queues();
