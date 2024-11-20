@@ -245,3 +245,4 @@ void Devolver_Recurso_VFD(unsigned char recurso,unsigned char pid);
 void init_queues(void);
 void Terminar_subProcesos(void);
 void* Init_VFD(void* arg);
+unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem);
