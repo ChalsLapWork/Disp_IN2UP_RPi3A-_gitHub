@@ -64,11 +64,31 @@ struct _FIFO_func_{
 };//fin _FIFO_func_----------------------------------------
 
 
+struct _Contexto{
+		unsigned char padre;   //contexto padre ,//de donde vengo
+		unsigned char Anterior;//contexto anterior
+		unsigned char Actual;  //contexto Actual
+		unsigned char Modificado;
+		unsigned char destino;//al que quiero ir
+		unsigned char control;//el contexto control, controla como llegar al que quiero ir
+		unsigned char final;//el contexto al que me mandan si algo sale mal
+		unsigned char permisos;//guarda los permisos actuales de cada menu
+		unsigned char Anterior0;
+		unsigned char Anterior1;
+		unsigned char Anterior2;
+		unsigned char Anterior3;
+		unsigned char Anterior4;
+};// Contexto +++++++++++++++++++++++++++++++++++
+struct _Menu_{
+	struct _Contexto contexto; 
+};//fin menu+++++++++++++++++++++++++++++++++++++
+
 struct _DISPLAY_VFD_{
 	struct _FIFO_1byte_ x;//parametro 1
 	struct _FIFO_1byte_ y;//parametro 2
 	struct _FIFO_1byte_ p;//parametro 3
 	struct _FIFO_func_  f1;//funciones para guardar lo que se grafica
+	struct _Menu_   menu;
 	struct _box_control{
 		 unsigned char boxs[SIZE_BOXES];
 		 unsigned char box0;
@@ -88,7 +108,11 @@ struct _DISPLAY_VFD_{
 	   	  		    unsigned short ADC_DATO:1;
 					unsigned short Proc_VFD_Tx_running:1;//esta corriendo el hilo que transmite a la VFD
 					unsigned short recurso_VFD_Ocupado:1;//recurso esta 0:libre o 1:ocupado?
-	   	  		}bits;
+	   	  		    unsigned short MenuPendiente:1;
+					unsigned short isBusy:1;//se esta graficando algo?
+					unsigned short isMenu:1;//entro y se desplego el menu?}
+					unsigned short isCursor:1;//requerimiento de cursores movidos
+				 }bits;
 	   	  	  }config;
 	struct _Vars_{
 		unsigned char nbytes;//bytes a emitir

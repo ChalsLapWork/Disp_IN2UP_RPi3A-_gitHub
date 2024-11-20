@@ -147,6 +147,7 @@ return NULL;
 unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
 unsigned char ret=0,estado1;
 unsigned char *box1,*box0;
+unsigned char pen,mode,ibox0,x1,y1,x2,y2;
 const unsigned char DELAY_TIME=1;
 enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
            n33,n34,n35,n54};
@@ -159,9 +160,9 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
       switch(estado1){//DRIVER DE VIDEO
     	  case n0:estado1++;
 		          vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
-    	  case n1:switch(*p){
+    	  case n1:switch(v->p){
 					  case 	_BOX_:     if(vfd.config.bits.BOX_enable){
-						                   *box1=*x;estado1++;}
+						                   *box1=v->x;estado1++;}
 					  	  	  	       else{estado1=n54;}
 					                   break;
 					  case _CHAR_:     estado1=CHARX;break;
@@ -174,7 +175,7 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
 					  case _DELAY_:    estado1=DELAYUSX0;
 					  case _DELAY_US:  estado1=DELAYUSX0;break;
 					  case _DELAY_MS:  estado1=DELAYMSX0;break;					 
-					  default:estado1=n55;break;}break;
+					  default:estado1=n54;break;}break;
     	  case n2:if(*box0>MAX_BOXES)*box0=0;
     	          if(*box0==*box1){estado1=0;
     	                vfd.v.timer=BUSY_K;break;}
@@ -190,8 +191,8 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
 							getBoxPattern(ibox0,&mode,&x1,&y1,&x2,&y2);
 							*box0=ibox0;}}
     	         
-    	         vfd.v.dat[0]=0x1F;
-    	         vfd.v.dat[1]=0x28;vfd.v.dat[2]=0x64;vfd.v.dat[3]=0x11;
+    	         vfd.v.dat[0]=0x1F;vfd.v.dat[1]=0x28;
+				 vfd.v.dat[2]=0x64;vfd.v.dat[3]=0x11;
     	         vfd.v.dat[4]=mode;
     	         vfd.v.dat[5]=pen;		
     	         coordenadas.coord16=x1;		
@@ -211,7 +212,7 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
 				 break;//fin case 2------------------------------------
     	  case CHARX:
     	         vfd.v.dat[0]=*x; //x=vfd.v.dat[13];y=vfd.v.dat[12];p=vfd.v.dat[11];			 
-			     vfd.v.nbytes=1;//bytes a emitir 	EMITIR CHAR
+			     vfd.v.nbytes=1; //bytes a emitir 	EMITIR CHAR
                  estado1=n33;
                  break;//fin de char
     	  case POSX:
