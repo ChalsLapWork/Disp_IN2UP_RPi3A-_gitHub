@@ -146,7 +146,7 @@ return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
 
 //methodo que se usa en un hilo transmisor VFD+++++++++++++++++++++++
-unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
+unsigned char Transmissor_a_VFD(struct VFD_DATA v,unsigned char *mem){
 unsigned char ret=0,estado1;
 unsigned char *box1,*box0;
 coordn16 coordenadas;
