@@ -695,83 +695,8 @@ Undefined : "contextoActual" Referenced from "AnguloVibracionProcesadorCentral" 
 
 
 
-struct _Contexto{
-		unsigned char padre;   //contexto padre ,//de donde vengo
-		unsigned char Anterior;//contexto anterior
-		unsigned char Actual;  //contexto Actual
-		unsigned char Modificado;
-		unsigned char destino;//al que quiero ir
-		unsigned char control;//el contexto control, controla como llegar al que quiero ir
-		unsigned char final;//el contexto al que me mandan si algo sale mal
-		unsigned char permisos;//guarda los permisos actuales de cada menu
-		unsigned char Anterior0;
-		unsigned char Anterior1;
-		unsigned char Anterior2;
-		unsigned char Anterior3;
-		unsigned char Anterior4;
-};
 
-struct _SubMenus{
-	unsigned char estado[SIZE_PID];//cada estado es un hilo ocupado
-	unsigned char control;//controla cual PID esta ganado
-	unsigned char pid[SIZE_PID];//guarda el indice, que se va usar de estado y hilo
-	unsigned char count[SIZE_PID];//contador del hilo
-	unsigned char aux1[SIZE_PID][SIZE_BUFF];//auxiliar para majenar chars
-	unsigned char aux2[SIZE_PID];//10 debe ser igual a SIZE PID 
-	unsigned short int aux3_usint[SIZE_PID];
-	int aux4_int[SIZE_PID];
-	unsigned char aux5[SIZE_PID];
-	double aux6_d[SIZE_PID],aux7_d[SIZE_PID];
-	//float ff[10];
-	signed short int aux11[SIZE_PID];
-	signed short int aux22[SIZE_PID];
-	float aux33[SIZE_PID];
-};
-
-struct _Returns{
-	union _Ret{
-	       unsigned char RetByte;
-	       struct{
-	    	  unsigned char fInit_VFD:1;//return de este metodo
-	    	  unsigned char fInit_Menu:1;
-	    	  unsigned char x2:1;
-	    	  unsigned char x3:1;
-	    	  unsigned char x4:1;
-	    	  unsigned char x5:1;
-	    	  unsigned char x6:1;
-	    	  unsigned char x7:1;
-	       }bit;
-		}u;
-};
-
-
-struct _Menu_{
-	unsigned char debug43;//debug variable para ver donde se activan las banderas.
-	struct _Contexto contexto;
-	struct _SubMenus subMenu;
-	struct _Returns ret;
-	union _Bytes_{
-	  	unsigned char byteReg;
-	  	struct{
-		unsigned char MenuPendiente:1;//indica si hay un menu pendiente por ejecutar el cambio de pantalla y todo
-		unsigned char isBusy:1;//se esta graficando algo?
-		unsigned char isMenu:1;//entro y desplego el menu??
-		unsigned char isCursor:1;//requerimiento de cursores movidos
-		unsigned char x3:1;
-		unsigned char x4:1;
-		unsigned char x5:1;
-		unsigned char x6:1;
-	   }b;//bits
-	 }b;//union 
-   struct _vars_{
-	  unsigned char aux[SIZE_MEMO_APP];//variable auxiliar para desplegar algun menu
-	  unsigned short int usi[4];
-	  float f[2];
-	  unsigned long int ulint[2];
-	  
-	 }v;	 
-	 
-};//fin menu
+	
 
 
 
