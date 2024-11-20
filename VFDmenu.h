@@ -19,7 +19,7 @@
 //#include "Memoria.h"
 //#include "PE_Types.h"
 #ifndef HW_VER_2
-#define HW_VER_2 3//[3||4] version 2.3 ó 2.4
+#define HW_VER_2 34//[3||4] version 2.3 ó 2.4
 #endif
 #define EN_LA_CASA     0xBB
 #define EN_EL_TRABAJO  0xAA
@@ -35,7 +35,8 @@
   #pragma metu2pmalizacion ssage("Led3_Process  Pin7a7[GPT1]")
   #pragma message("QSPI-CS0      Pin28[QSPI_CS0]")
 #else
-#error "Version de Hardware Desconosida"
+//#error "Version de Hardware Desconosida"
+  #define nadaaqui
 #endif	
 	
 
@@ -812,7 +813,7 @@ void DisplayPruebasEntradasMenu(void);
 void displayPruebasEntradas(void);
 void MemoEEPROM_DDS(unsigned operacion,unsigned char contexto1,unsigned char mode);
 void displaySeleccionarProducto(void);
-word lenght2(unsigned char *c);
+unsigned short int lenght2(unsigned char *c);
 void displayNuevoProducto(void);
 void displayTextoProcessor(void);
 unsigned char configTextoProcessorController(unsigned char contextOrigen,unsigned char contextDestino);
@@ -823,7 +824,7 @@ void rotateVarParte11(void);
 void displayvarParte11(void);
 void DisplayParte11Menu(void);
 void DisplayAjusteVibracionMenu(void);
-void getBoxPattern(unsigned char box,unsigned char *mode,unsigned short int *x1,unsigned short int *y1,unsigned short int *x2,unsigned short int *y2);
+//void getBoxPattern(unsigned char box,unsigned char *mode,unsigned  *x1,unsigned short int *y1,unsigned short int *x2,unsigned short int *y2);
 unsigned char displayBoxDestructor(unsigned char mode);
 void DisplayEstaSeguro2(void);
 void displayBox(unsigned char *MutexCV);

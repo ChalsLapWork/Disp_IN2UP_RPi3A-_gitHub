@@ -11,7 +11,7 @@ typedef struct {
 
 ParallelPort port = { .pins = {0, 1, 2, 3, 4, 5, 6, 7} };
 void initParallelPort(ParallelPort *port);
-
+void writeParallelPort(ParallelPort *port, unsigned char value);
 
 // Configurar pines como salidas
 void initParallelPort(ParallelPort *port) {
