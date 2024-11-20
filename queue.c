@@ -152,7 +152,7 @@ unsigned char *box1,*box0;
 coordn16 coordenadas;
 unsigned char pen,mode,ibox0,x1,y1,x2,y2;
 const unsigned char DELAY_TIME=1;
-unsigned char timer,index,ret;
+unsigned char timer,index;
 const unsigned char CHARS_X=60;
 static union W7{//access word: 
 	unsigned  short int wordx; //0xaabb //aa
@@ -167,10 +167,10 @@ static union W7{//access word:
       switch(estado1){//DRIVER DE VIDEO
     	  case 1:timer=0;index=0;ret=0;estado1++;break;
 		  case 2:switch(v.p){
-                   case _BOX_:if(vfd.config.bits.BOX_enable){box1=v.x;estado1++;}
-							  else{estado1=54;}break;}
+                   case _BOX_:if(vfd.config.bits.BOX_enable){box1=&v.x;estado1++;}
+							  else{estado1=54;}break;
 				   case _CHAR_:estado1=CHARS_X;break;			  
-
+                   default:break;
 		             }//fin-switch selection of operation++++++++++++
 		  default:break;}//fin estado principal-----------------------------------------      
 
