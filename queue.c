@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <wiringPi.h>
+#include "VFDisplay.h"
 
 typedef struct Node{
   //unsigned char Xdata[SIZE_MAX_FIFO];
@@ -151,7 +153,11 @@ unsigned char pen,mode,ibox0,x1,y1,x2,y2;
 const unsigned char DELAY_TIME=1;
 enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
            n33,n34,n35,n54};
-      
+static union W7{//access word: 
+	unsigned  short int wordx; //0xaabb //aa
+	unsigned char byte[2];     //byte[0]=aa,byte[1]=bb
+}w16;
+
    estado1=*(mem+0);
 	   ret=*(mem+1);
 	  box1=mem+2;
@@ -211,7 +217,7 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
 				 estado1=n33;//emitir los datos; FIN DE CAJAS
 				 break;//fin case 2------------------------------------
     	  case CHARX:
-    	         vfd.v.dat[0]=*x; //x=vfd.v.dat[13];y=vfd.v.dat[12];p=vfd.v.dat[11];			 
+    	         vfd.v.dat[0]=v->x; //x=vfd.v.dat[13];y=vfd.v.dat[12];p=vfd.v.dat[11];			 
 			     vfd.v.nbytes=1; //bytes a emitir 	EMITIR CHAR
                  estado1=n33;
                  break;//fin de char
@@ -225,24 +231,24 @@ enum edos {n0,n1,n2,CHARX,PUNTOX,POSX,DELAYUSX0,DELAYUSX1,DELAYMSX0,DELAYMSX1,
 				 vfd.v.nbytes=6;//bytes a emitir
 				 estado1=n33;
 				 break;//fin de posicion
-    	  case PUNTOX:  if(menu.b.b.MenuPendiente){ estado1=0;break;}
+    	  case PUNTOX:  if(vfd.config.bits.MenuPendiente){ estado1=0;break;}
 						vfd.v.dat[0]=0x1F;
 						vfd.v.dat[1]=0x28;
 						vfd.v.dat[2]=0x64;
 						vfd.v.dat[3]=0x10;
 						vfd.v.dat[4]=0x01;//pen=1;
-						vfd.v.dat[5]=*x;
+						vfd.v.dat[5]=//*x;
 						vfd.v.dat[6]=0x00;
-						vfd.v.dat[7]=*y;
+						vfd.v.dat[7]=//*y;
 						vfd.v.dat[8]=0x00;
 						vfd.v.nbytes=9;//bytes a emitir
 	    				estado1=n33;    
 				        break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
     
-    	  case DELAYUSX0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYUSX1:usleep(w16.wordx);estado1=n55;break;
-    	  case DELAYMSX0:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
-    	  case DELAYMSX1:usleep(w16.wordx);estado1=n55;break;
+    	  case DELAYUSX0:w16.byte[0]=v->x;w16.byte[1]=v->y;estado1++;break;
+    	  case DELAYUSX1:usleep(w16.wordx);estado1=n54;break;
+    	  case DELAYMSX0:w16.byte[0]=v->x;w16.byte[1]=v->y;estado1++;break;
+    	  case DELAYMSX1:usleep(w16.wordx);estado1=n54;break;
     	  case n33:if(vfd.v.nbytes==vfd.v.index)estado1=n54;else{estado1=n34;}break;
     	  case n34:if(digitalRead(R_BUSY_PIN)==1)estado1++;break;
     	  case n35:writePort(vfd.v.dat[vfd.v.index]);//VFDserial_SendChar1(vfd.v.dat[vfd.v.index]);
