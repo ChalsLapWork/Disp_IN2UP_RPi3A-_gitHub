@@ -128,7 +128,9 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
     //QueueTxVFD *q = (QueueTxVFD *)arg;
 	//struct VFD_DATA data;
 	//unsigned char estado124,mem[20];
+	while(1){
 	printf("\n       Proceso  Transmissor a VFD Iniciando");
+	}
 	/*while(!vfd.config.bits.init_VFD||q->size>0){
 	 switch(estado124){
 	   case 1:NoErrorOK();
@@ -204,8 +206,9 @@ const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
 */
+while(1){
 printf("\n       Init VFD running");
-  
+}
 /*  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
