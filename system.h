@@ -1,18 +1,23 @@
-#ifndef SYSTEM_H_
+
+//#ifndef SYSTEM_H_
+
 #define SYSTEM_H_
 
 //LED PIN WIRINpi 0 is bcm_gpio 17.
-#define BIT0 0
-#define BIT1 1
-#define BIT2 2
-#define BIT3 3
-#define BIT4 4
-#define BIT5 5
-#define BIT6 6
-#define BIT7 7
-#define WR   8
-#define BUSY 9
+#define BIT0_PIN 0
+#define BIT1_PIN 1
+#define BIT2_PIN 2
+#define BIT3_PIN 3
+#define BIT4_PIN 4
+#define BIT5_PIN 5
+#define BIT6_PIN 6
+#define BIT7_PIN 7
+#define WR_PIN   8
+#define R_BUSY_PIN 9 //Ready/Busy
 //**************************************************
+
+// debug Nivel del debugeo numero-1
+#define debug_level1 1 //1:esta activado el debugeo
 
 
 #define PHARMACEUTICO 0xAB
@@ -273,7 +278,6 @@
 #define _DELAY_     'E'//delay de espera para mandar algo al VFD
 //#define _FEM_       0x54 //estado FFlag End MEnu, describe que ya se desplego el menu seleccionado- para poder empezar a trabajar en ese menu
 #define DELAY_TIME 1 //numero de IntERRUPCIONES DE TIMER1 para crear delay
-#define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
 
 #define XROW        128//buffer para guardar los pixeles  que se estan
 #define YCOL         24//desplegando en el DDS para se usados por el zoom despues
@@ -315,6 +319,6 @@
 #define PID16 0x10//digitoRtLeft
 #define PID17 0x11//VFDdrawLine_v4
 
-#endif //***************************************************************
+//#endif //***************************************************************
 //**********************************************************************
 

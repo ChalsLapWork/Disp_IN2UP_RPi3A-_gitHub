@@ -33,22 +33,10 @@
 #define SIZE_TBC 15
 #define SIZE_CHAR 5
 #define SIZE_FEW  3
+#define DATOS_SIZE 14U //tamaño del buffer de transmision al VFD
+#define SIZE_MAX_FIFO 10//TAMAÑÑO de fifo de transmision a VFD
 
 
-struct _VFD_{
- union _Config{
-  unsigned char byte1;
-  struct _Bits{
-    unsigned char init_VFD:1;
-    unsigned char init_menu:1;
-    unsigned char BOX_enable:1;
-    unsigned char x0:1;
-    unsigned char x1:1;
-    unsigned char x2:1;
-    unsigned char x3:1;
-    }bits;
-  }config;
-};
 
 
 /*version 310322-1641 add reset genaral */
@@ -60,7 +48,7 @@ struct _FIFO_1byte_{//FIFO PARA UNA VARIABLE para un byte
 	unsigned char (*popf)(unsigned char *n,struct _FIFO_1byte_ *s);//quitar el prmer elemento de la fifo DDS
 	unsigned char (*appendByte)(unsigned char  n,struct _FIFO_1byte_ *s);//agregar byte al buffer de transmision
     void (*vaciarbuff)(unsigned char *p1,unsigned char *p2,unsigned short int size);
-    void (*resetFIFO)(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned short int size);
+    void (*resetFIFO)(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned char size);
     unsigned short int ncount;//cuenta los nodos llenos en la fifo
     unsigned short int size; //size de la fifo
     unsigned char nLibres;//cantidad de nLibres
@@ -88,18 +76,20 @@ struct _DISPLAY_VFD_{
 		 unsigned short int timer;//se activa  por timer y resetea el array
 	   }box;
 	union _Byte5_{
-	   	  		unsigned char bytes1;
+	   	  		unsigned short int bytes1;
 	   	  		struct{
-	   	  			unsigned char FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
-	   	  			unsigned char DDSon:1;//indica si borramos registro de datos repetidos de DDS
-	   	  			unsigned char TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
-	   	  			unsigned char finit_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
-	   	  			unsigned char finit_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
-	   	  			unsigned char BOX_enable:1;
-	   	  			unsigned char VDF_busy:1;//se estan mandando comandos  o posiciones
-	   	  		    unsigned char ADC_DATO:1;
-	   	  		}b;
-	   	  	  }bits;
+	   	  			unsigned short FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
+	   	  			unsigned short DDSon:1;//indica si borramos registro de datos repetidos de DDS
+	   	  			unsigned short TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
+	   	  			unsigned short init_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
+	   	  			unsigned short init_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
+	   	  			unsigned short BOX_enable:1;
+	   	  			unsigned short VDF_busy:1;//se estan mandando comandos  o posiciones
+	   	  		    unsigned short ADC_DATO:1;
+					unsigned short Proc_VFD_Tx_running:1;//esta corriendo el hilo que transmite a la VFD
+					unsigned short recurso_VFD_Ocupado:1;//recurso esta 0:libre o 1:ocupado?
+	   	  		}bits;
+	   	  	  }config;
 	struct _Vars_{
 		unsigned char nbytes;//bytes a emitir
 		unsigned char dat[DATOS_SIZE];
@@ -113,6 +103,12 @@ struct _DISPLAY_VFD_{
 	   }v;
     		
 };//fin display VFD----------------------------------------------
+
+struct VFD_DATA{
+  unsigned char x;
+  unsigned char y;
+  unsigned char p;
+};
 
 
 
@@ -217,12 +213,14 @@ void init_FIFO_RX_serial_Keypad(struct _FIFO_1byte_ *s);
 unsigned char FIFO_general_1byte_push(unsigned char dato,struct _FIFO_1byte_ *s);
 //unsigned char get_case_FIFO_general(struct _FIFO_1byte_ *s);
 unsigned char FIFO_general_1byte_pop(unsigned char *dato,struct _FIFO_1byte_ *s);
-void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned short int size);
+void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
+            unsigned char *arr,unsigned char size);
 void Testing_SO_Debug(void);
 unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p);
 unsigned char vfd_FIFO_pop(unsigned char *x,unsigned char *y,unsigned char *p);
 unsigned char vfd_FIFOs_RESET(void);
-void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,unsigned char *h,unsigned char *t,unsigned short int size);
+void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
+             unsigned char *h,unsigned char size);
 unsigned char dds_pix_pop(signed short int *x,signed short int *y);
 unsigned char dds_pix_append(signed short int x,signed short int y);
 unsigned char dds_pix_reset(void);
@@ -244,3 +242,6 @@ unsigned char sacar_de_la_FIFO_IO(unsigned char pid);
 unsigned char insertarlo_en_Fifo_IO(unsigned char pid);
 unsigned char ya_esta_en_la_FIFO_IO(unsigned char pid);
 void Devolver_Recurso_VFD(unsigned char recurso,unsigned char pid);
+void init_queues(void);
+void Terminar_subProcesos(void);
+void* Init_VFD(void* arg);

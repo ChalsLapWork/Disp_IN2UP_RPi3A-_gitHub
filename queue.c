@@ -1,14 +1,322 @@
-
+#include "system.h"
 #include "queue.h"
+#include "string.h"
+#include "errorController.h"
+#include "VFD.h"
+#if(debug_level1==1)
+  #include <stdio.h>
+#endif
+#include <pthread.h>
+#include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+typedef struct Node{
+  //unsigned char Xdata[SIZE_MAX_FIFO];
+  //unsigned char Ydata[SIZE_MAX_FIFO];
+  //unsigned char Pdata[SIZE_MAX_FIFO];
+  struct VFD_DATA dato;
+  struct Node *next;
+}Node;//Nodo para crear las queues+++++++++++++++++++++++++++
+
+typedef struct Queue{
+  Node *head,*tail;
+  int size;
+  pthread_cond_t  cond_init_TX_VFD;//condicion de init VFD transmisor
+  pthread_mutex_t mutex_init_VFD;//mutex para init VFD y transmisor
+  #if(SIZE_MAX_FIFO<255)
+    unsigned char nLibres;
+	unsigned char nOcupados;
+  #endif
+  struct _DISPLAY_VFD_ *v;//pointer to the control general of vfd
+}QueueTxVFD;
 
 
 struct _DISPLAY_VFD_ vfd;
+QueueTxVFD qVFDtx;//queue de transmision vfd 
+void init_Queue_with_Thread(QueueTxVFD *q);
+struct VFD_DATA dequeue(QueueTxVFD  *q);
+void enqueue(QueueTxVFD *q,struct VFD_DATA dato1);
+void* SubProceso_Tx_VFD(void* arg);
 
-void init_queue(void){
-    vfd.config.byte1=0;//init all parameter into zero
+unsigned char  buffer6[SIZE_BUFFER6];//FIFO graficos con S.O, aqui guarda el dato
+unsigned char  buffer7[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro=char|box|pos|
+unsigned char  buffer8[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el parametro numero 3
 
 
+void init_queues(void){
+	pthread_t Proc1_Init_VFD;//Proceso para inizializar el VFD
+	init_FIFO_General_1byte(&vfd.x,&buffer6[0],SIZE_BUFFER6);
+    init_FIFO_General_1byte(&vfd.y,&buffer7[0],SIZE_BUFFER6);
+    init_FIFO_General_1byte(&vfd.p,&buffer8[0],SIZE_BUFFER6);
+    printf("\n       Iniciando queueus");	  
+    vfd.config.bytes1=0;//init all parameter into zero
+    vfd.f1.append=vfd_FIFO_push;
+	vfd.f1.pop=vfd_FIFO_pop;                                                                                                                                                                                                                                                                                                                                                                                                                      
+	vfd.f1.resetFIFOS=vfd_FIFOs_RESET;
+	qVFDtx.v=&vfd;//misma estructura en los dos lados,
+	init_Queue_with_Thread(&qVFDtx);//fifos Transmisor data al Display
+	vfd.config.bits.recurso_VFD_Ocupado=TRUE;//recurso ocupado, VFD nadie lo puede usar
+	NoErrorOK();
+	printf("\n       Creando Proceso Init VFD");
+	switch(pthread_create(&Proc1_Init_VFD,NULL,Init_VFD,&qVFDtx)){
+		case 0:NoErrorOK();break;
+		case EAGAIN:errorCritico("Recursos insuficientes,Error de hilo init VFD");break;
+		case EINVAL:errorCritico("Arg invalidos,Error de hilo init VFD");break;
+		case EPERM:errorCritico("Permisos Insuficientes,Error de hilo init VFD");break;
+		default:errorCritico("Error desconocido de hilo init VFD");break;}
+	//pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
+    pthread_join(Proc1_Init_VFD,NULL);
+	pthread_mutex_destroy(&qVFDtx.mutex_init_VFD);
+    pthread_cond_destroy(&qVFDtx.cond_init_TX_VFD);
+	printf("\n       Comenzamos las otras configuraciones");
+	NoErrorOK();
 }//fin init queue++++++++++
+
+
+
+
+void init_Queue_with_Thread(QueueTxVFD *q){
+      q->head=q->tail=NULL;
+	  q->size=0;
+	  q->nLibres=SIZE_MAX_FIFO;
+	  q->nOcupados=0;
+	  pthread_mutex_init(&q->mutex_init_VFD,NULL);//
+	  pthread_cond_init(&q->cond_init_TX_VFD,NULL);
+}//fin de init FIFO transmit VFD+++++++++++++++++++++++++
+  
+
+
+//encola regresa TRUE: si esta llena , FALSE: si esta vacia
+void enqueue(QueueTxVFD *q,struct VFD_DATA dato1){
+	Node* new_node = (Node*)malloc(sizeof(Node));
+	new_node->dato=dato1;
+	new_node->next=NULL;
+    pthread_mutex_lock(&q->mutex_init_VFD);
+	if(q->tail==NULL){
+		  q->head=new_node;
+		  q->tail=new_node;}
+	else{q->tail->next=new_node;
+	     q->tail=new_node;}
+	q->size++;	 
+	q->nLibres--;q->nOcupados++;
+    pthread_cond_signal(&q->cond_init_TX_VFD); // Notifica que la cola no está vacía
+    pthread_mutex_unlock(&q->mutex_init_VFD);
+}//fin enqueue++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+struct VFD_DATA dequeue(QueueTxVFD  *q) {
+	pthread_mutex_lock(&q->mutex_init_VFD);
+	while(q->size==0)
+	    pthread_cond_wait(&q->cond_init_TX_VFD,&q->mutex_init_VFD);	//espera si la cola esta vacia
+    Node *temp=q->head;
+	struct VFD_DATA data=temp->dato;
+	q->head=q->head->next;
+    if(q->head==NULL)
+	     q->tail=NULL;
+    q->size--;
+	free(temp);		 
+    pthread_mutex_unlock(&q->mutex_init_VFD);
+	q->nLibres++;q->nOcupados--;
+return data;
+}//fin de queue+++++++++++++++++++++++++++++++++
+
+/*  Control de Display de VFD de despliegue por thread  */
+void* SubProceso_Tx_VFD(void* arg) {//consumidor
+    QueueTxVFD *q = (QueueTxVFD *)arg;
+	struct VFD_DATA data;
+	unsigned char estado124;
+	printf("\n       Proceso  Transmissor a VFD Iniciando");
+	while(!vfd.config.bits.init_VFD||q->size>0){
+	 switch(estado124){
+	   case 1:NoErrorOK();
+	          printf("\n       Tx, Lectura de init=%d",vfd.config.bits.init_VFD);
+	          estado124++;NoErrorOK();break;//start para iniciar el proceso
+	   case 2:q->v->config.bits.Proc_VFD_Tx_running=TRUE;estado124++;break;
+	   case 3:data=dequeue(q);
+	          estado124++;break;
+	   case 4:if(Transmissor_a_VFD(data))estado124=3;break;
+	   default:estado124=1;break;}}//fin switch y while
+	   q->v->config.bits.Proc_VFD_Tx_running=FALSE;
+       printf("\n       Hilo TX VFD Apagado:%d",estado124);
+ 	   NoErrorOK();
+       //sleep(500);	   
+return NULL;
+}//fin del subproceso de envio de datos al display+++++++++++++
+
+//methodo que se usa en un hilo transmisor VFD+++++++++++++++++++++++
+unsigned char Transmissor_a_VFD(struct VFD_DATA *v,unsigned char *mem){
+unsigned char ret=0,estado1;
+unsigned char *box1,*box0;
+const unsigned char DELAY_TIME=1;
+      
+	  estado1=*(mem+0);
+	  ret=*(mem+1);
+	  box1=mem+2;
+	  box0=mem+3;
+
+      switch(estado1){//DRIVER DE VIDEO
+    	  case 0:estado1++;vfd.v.timer=DELAY_TIME;vfd.v.index=0;ret=0;break;
+    	  case 1:switch(*p){
+					  case 	_BOX_:     if(vfd.bits.b.BOX_enable){
+						                   *box1=*x;estado1++;}
+					  	  	  	       else{estado1=55;}
+					                   break;
+					  case _CHAR_:     estado1=CHARX;break;
+					  case _PUNTO_:    estado1=PUNTOX; break;
+					  case _RAYA_:     break;
+					  case _BOLD_:     estado1=54;break;//debug
+					  case _POS_:      estado1=POSX;break;
+					  case _DDS_BORRAR:estado1=POSX;break;
+					  case _DDS_reZOOM:estado1=POSX;break;
+					  case _DELAY_:    estado1=DELAYUSX;
+					  case _DELAY_US:  estado1=DELAYUSX;break;
+					  case _DELAY_MS:  estado1=DELAYMSX;break;					 
+					  default:estado1=55;break;}break;
+    	  case 2:if(*box0>MAX_BOXES)*box0=0;
+    	         if(*box0==*box1){estado1=0;
+    	                vfd.v.timer=BUSY_K;break;}
+    	         else{if(*box0>*box1){//borrando cuadros
+						pen=0;ibox0=*box0;
+						getBoxPattern(ibox0,&mode,&x1,&y1,&x2,&y2);//box0 se tiene que decrementar despues no antes
+						if(*box0>0)ibox0--;
+						*box0=ibox0;}
+    	              else
+						if(*box1>*box0){
+							pen=1;ibox0=*box0;
+							ibox0++;//incrementamos el valor box0, para alcanzar box1
+							getBoxPattern(ibox0,&mode,&x1,&y1,&x2,&y2);
+							*box0=ibox0;}}
+    	         
+    	         vfd.v.dat[0]=0x1F;
+    	         vfd.v.dat[1]=0x28;vfd.v.dat[2]=0x64;vfd.v.dat[3]=0x11;
+    	         vfd.v.dat[4]=mode;
+    	         vfd.v.dat[5]=pen;		
+    	         coordenadas.coord16=x1;		
+    	         vfd.v.dat[6]=coordenadas.byte[LO];		
+    	         vfd.v.dat[7]=coordenadas.byte[HI];		
+				 coordenadas.coord16=y1;		
+				 vfd.v.dat[8]=coordenadas.byte[LO];		
+				 vfd.v.dat[9]=coordenadas.byte[HI];
+				 coordenadas.coord16=x2;		
+				 vfd.v.dat[10]=coordenadas.byte[LO];		
+				 vfd.v.dat[11]=coordenadas.byte[HI];		
+				 coordenadas.coord16=y2;		
+				 vfd.v.dat[12]=coordenadas.byte[LO];		
+				 vfd.v.dat[13]=coordenadas.byte[HI];
+				 vfd.v.nbytes=14;//bytes a emitir
+				 estado1=33;//emitir los datos; FIN DE CAJAS
+				 break;//fin case 2------------------------------------
+    	  case CHARX:
+    	         vfd.v.dat[0]=*x; //x=vfd.v.dat[13];y=vfd.v.dat[12];p=vfd.v.dat[11];			 
+			     vfd.v.nbytes=1;//bytes a emitir 	EMITIR CHAR
+                 estado1=33;
+                 break;//fin de char
+    	  case POSX:
+    		     vfd.v.dat[0]=0x1F;//INICIA COMANDO DE POSICION
+				 vfd.v.dat[1]=0x24;
+				 vfd.v.dat[2]=vfd.v.dat[13];//variable x
+				 vfd.v.dat[3]=0x00;
+				 vfd.v.dat[4]=vfd.v.dat[12];//variable y
+				 vfd.v.dat[5]=0x00;		
+				 vfd.v.nbytes=6;//bytes a emitir
+				 estado1=33;
+				 break;//fin de posicion
+    	  case PUNTOX:if(menu.b.b.MenuPendiente){ estado1=0;break;}
+    	         vfd.v.dat[0]=0x1F;
+    	         vfd.v.dat[1]=0x28;
+    	         vfd.v.dat[2]=0x64;
+    	         vfd.v.dat[3]=0x10;
+    	         vfd.v.dat[4]=0x01;//pen=1;
+    	         vfd.v.dat[5]=*x;
+    	         vfd.v.dat[6]=0x00;
+    	         vfd.v.dat[7]=*y;
+    	         vfd.v.dat[8]=0x00;
+				 vfd.v.nbytes=9;//bytes a emitir
+				 estado1=33;    
+				 break;//Fin de Punto de DDS	---++++++++++++++++++++++++++++++++++			 
+    	  case 7:if(vfd.v.timer==0)
+    		        if(vfd.bits.b.TxBuffOFF)
+    	    		         estado1=8;
+    	    	         break;
+     	  case 8: switch(menu.contexto.Actual){
+    	    		  case PANTALLA_DDS:vfd.bits.b.DDSon=1;break; 
+    	    		  default:break;}
+    	    	  estado1=54;
+    	    	  break;
+    	  case DELAYUSX:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYUSX+1:usleep(w16.wordx);estado1++;break;
+		  case DELAYUSX+2:estado1=55;break;
+    	  case DELAYMSX:w16.byte[0]=*x;w16.byte[1]=*y;estado1++;break;
+    	  case DELAYMSX+1:usleep(w16.wordx);estado1++;break;
+		  case DELAYMSX+2:estado1=55;break;
+    	  case 33:if(vfd.v.nbytes==vfd.v.index)estado1=54;else{estado1=34;}break;
+    	  case 34:usleep(1000*2);estado1++;break;
+    	  case 35:VFDserial_SendChar(vfd.v.dat[vfd.v.index]);
+     		      vfd.v.dat[vfd.v.index++]=0; 
+                  estado1=33;
+    		      break;//fin de enviar el Buffer
+    	  case 54://esperamos que lleguen los ultimos datos al display
+    		      if(vfd.bits.b.TxBuffOFF){  
+    		    	  menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
+    		    	  cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
+    		    	  estado1=0;}
+    		      break;
+    	  case 55://esperamos ni maiz, fue un delay
+    	      		menu.b.b.isBusy=0;//Deteccion.BarraDeteccionStatus=BUSY_WAIT;//terminamos de graficar algo.      
+    	      	    cleanArray(&vfd.v.dat[0],DATOS_SIZE,0);
+    	      		estado1=0;
+    	      		break;
+    	      		            
+    	  default:estado1=0;break;}//fin estado principal-----------------------------------------      
+
+}//transmisor de datos a VFD++++++++++++++++++++++++++++++++
+
+
+//Proceso  unico de padre unico  y sin instancias
+void* Init_VFD(void* arg){  //Proceso Productor
+QueueTxVFD *q=(QueueTxVFD*)arg;
+pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
+unsigned char ret=0,estado;
+const unsigned char SIZE_CMD=7;//numero de comandos
+const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
+unsigned char i=0;
+#if (debug_level1==1) 
+   printf("\n       Iniziando mutex y semaforos");
+#endif  
+  if(q->v->config.bits.init_VFD){
+	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
+ while(!ret){
+	switch(estado){
+		case 1:NoErrorOK();estado++;break;
+		case 2:printf("\n       Creando Hilo Transmisor");
+		       switch(pthread_create(&Proc2_Tx_VFD,NULL,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
+				case 0:NoErrorOK();break;//todo ok
+				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
+				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
+				case EPERM:errorCritico("Permisos Insuficientes,Error Proc Tx VFD");break;
+				default:errorCritico("Error desconocido Proc Tx VFD");break;}
+			   estado++;break;
+	    case 3:printf("\n       Init, comenzar a llenar los FIFOs Init para Transmitir");
+			   NoErrorOK();estado++;break;
+		case 4:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
+		case 5:if(++i<SIZE_CMD)estado=4;else{estado++;}break;
+		case 6:vfd.config.bits.init_VFD=TRUE;estado++;break;
+		case 7:pthread_cond_signal(&q->cond_init_TX_VFD);estado++;break;
+        case 8:estado=0;ret=TRUE;break;
+		default:estado=1;break;}}//fin switch while 
+        pthread_join(Proc2_Tx_VFD,NULL);
+	    printf("\n       Init Sub Proceso Init Terminado");
+		NoErrorOK();
+		//sleep(400);
+return NULL;
+}//fin init VFD -------------------------------------------------------------------
+
+
+
+void Terminar_subProcesos(void){
+    //pthread_join(Proc_Tx_VFD,NULL);
+	//pthread_mutex_destroy(&q->lock);
+}//terminar subprocesos+++++++++++++++++++++++++
 
 
 /*parametro 
@@ -24,7 +332,7 @@ void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
 	s->tail=h+size-1;
 	s->pop=s->tail;
 	s->push=s->tail;
-	s->ncount=0;
+	s->ncount=s->nOcupados=0;s->nLibres=size;
 	s->popf=FIFO_general_1byte_pop;
 	s->appendByte=FIFO_general_1byte_push;
 	s->size=size;
@@ -34,18 +342,22 @@ void init_FIFO_General_1byte(struct _FIFO_1byte_ *s,
 
 //return FALSE if is empty
 /* version 300322-1156*/
-unsigned char FIFO_general_1byte_pop(unsigned char *dato,struct _FIFO_1byte_ *s){	
-	if(s->ncount==0)
-		return FALSE;
+unsigned char FIFO_general_1byte_pop(unsigned char *dato,
+                   struct _FIFO_1byte_ *s){	
+	if(s->ncount==0){
+        #if(debug_level1==1)
+		    printf("\nFIFO LLENA");
+	    #endif
+		return FALSE;}
 	if(s->ncount==1){
 		*dato=*(s->pop);//solo hay un dato en la FIFO
 		*(s->pop)=0;//vaciamos nodo
 		s->pop=s->push=s->tail;//reajustamos todo de inicio
-		s->ncount=0;}
-	else{*dato=*(s->pop);//solo hay un dato en la FIFO
+		s->ncount=0;s->nLibres++;s->nOcupados=0;}
+	else{*dato=*(s->pop);
 	     *(s->pop)=0;//vaciamos nodo
-	     if(s->ncount>0)
-	    	  s->ncount--;
+	     if(s->ncount>0){
+	    	  s->ncount--;s->nLibres++;s->nOcupados++;}
 		 if(s->pop==s->head)
 			    s->pop=s->tail;
 		 else s->pop--;}
@@ -59,46 +371,112 @@ return TRUE;
  * RegrESA  FALSE si esta llena
  *   version 39.22.5.0
  * */
-unsigned char FIFO_general_1byte_push(unsigned char dato,struct _FIFO_1byte_ *s){
+unsigned char FIFO_general_1byte_push(unsigned char dato,
+                                  struct _FIFO_1byte_ *s){
 auto unsigned char ret=0;
-	  if(!(s->size>s->ncount)) 
+	  if(s->nLibres==0) 
 		   return FALSE;//FIFO llena
 	  if(s->ncount==0){
 		   s->pop=s->push=s->tail;//emparejamos pointers
 		   *(s->push)=dato;
-		   s->push--;
-	       s->ncount++;ret=TRUE;}
+		   s->push--;s->ncount++;s->nLibres--;s->nOcupados++;
+           ret=TRUE;}
 	  else{if(s->push==s->head){
 		      if(s->tail==s->pop){
 		    	  *(s->push)=dato;
 		    	  s->push=s->pop;//esta llena
-		    	  s->ncount++;
-		    	  if(s->ncount==s->size){//si cupo uno
-		    		    ret=TRUE;}//SE inserto dato en ultimo lugar vacio
-		    	  else{__asm(nop);__asm(Halt);}}//error de software
+		    	  s->ncount++;s->nLibres--;s->nOcupados++;}
 		      else{*(s->push)=dato;s->push=s->tail;
-		           s->ncount++;ret=TRUE;}}
+		           s->ncount++;s->nLibres--;s->nOcupados++;
+                   ret=TRUE;}}
 	       else{if(s->push-1==s->pop){//nos recorreremos para atras y no topamos con pop
 		           *(s->push)=dato;
 		           s->push=s->pop;
-		           s->ncount++;
-		           if(s->ncount==s->size){//se acaba de llenar fifo pero si cupo uno
-  		    		    ret=TRUE;}//SE inserto dato en ultimo lugar vacio
-   		    	   else{__asm(nop);__asm(Halt);}}//error de software
-	            else{*(s->push)=dato;s->push--;
-	                 s->ncount++;ret=TRUE;}}}
+		           s->ncount++;s->nLibres--;s->nOcupados++;
+                   if(s->nLibres>0){errorCritico("error de algoritmo de fifo");}
+		           ret=TRUE;}
+	             else{*(s->push)=dato;s->push--;
+                          s->nLibres--;s->nOcupados++;
+	                    s->ncount++;ret=TRUE;}}}
 return ret;
-}//FIFO_general_1byte_push------------------------------------------
+}//FIFO_general_1byte_push---------------------------------------------
 
 
 
-//se resetea toda la fifo y todo queda cmo de inicio
-//  serial.resetFIFO=reset_FIFO_serial_TX;
-// version 310322-1626 
-void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,unsigned char *arr,unsigned short int  size){
+//se resetea toda la fifo y todo queda cmo de inici
+// version 21-oct-24:10:15am
+void reset_FIFO_general_UChar(struct _FIFO_1byte_ *s,
+       unsigned char *arr,unsigned char  size){
 	   s->pop=s->push=s->tail;
 	   s->ncount=0;
 	   cleanArray(arr,size,0);
 	  
 }//fin reset_FIFO_serial_TX---fin se resetea toda la fifo
 
+
+//FIFO para ingresar un dato a desplegar vfd.f1.append(14,0,_BOX_);
+//Return false|true   TRUE: si se agrego sin problemas
+unsigned char vfd_FIFO_push(unsigned char x,unsigned char y,unsigned char p){
+const unsigned char BYTES_BOX=250; //numero de ciclos, mas que bytes por comando de una box cdraw 
+//volatile unsigned char n=0;	
+//static unsigned char control;
+//auto unsigned char ret=0;
+    struct VFD_DATA dato;
+    //if(!(vfd.x.ncount<SIZE_BUFFER6))
+    //	 return FALSE;//esta muy llena la FIFO, espera un poco
+    switch(p){//1100 0000 los dos MSB indican que proqrametro es
+    	case _BOX_:if(x==0)
+    		            return FALSE; 
+    	           if(vfd.box.timer==0){
+    	        	    vfd.box.timer=DELAY_TIME*BYTES_BOX;
+    	        	    cleanArray(&vfd.box.boxs[0],SIZE_BOXES,0);
+    	                return TRUE;}
+    		       if(vfd.box.boxs[x]==0)
+    		    	   vfd.box.boxs[x]++;        
+    		       else{if(vfd.box.boxs[x]<250){
+    		    	          vfd.box.boxs[x]++;
+    		                  return TRUE;}
+    		              else return TRUE;}
+    	           break;              
+    	case _CHAR_ :y='c';break;
+    	case _PUNTO_:if((x==0)&&(y==0)){return(TRUE);}
+    	             break;
+    	case _RAYA_ : 
+    	case _POS_  :break;
+    	case _BOLD_ :break;
+    	default:break;}
+     //n=vfd.x.appendByte(x,&vfd.x);deprecated
+	 //n+=vfd.y.appendByte(y,&vfd.y);deprecated
+	 //n+=vfd.p.appendByte(p,&vfd.p);deprecated
+	 dato.x=x;dato.y=y;dato.p=p;
+     enqueue(&qVFDtx,dato);
+	 //if(n==3){//fifo llena
+	   //   ret=TRUE;}deprecated
+return TRUE;//ret;
+}//fin vfd_FIFO_push-------------------------------------------
+
+
+/*   */
+unsigned char vfd_FIFO_pop(unsigned char *x,unsigned char *y,unsigned char *p){
+unsigned char  r;	 
+	   if(vfd.x.ncount==0){
+		   if((vfd.y.ncount!=0)&&(vfd.p.ncount!=0)){
+			       //__asm(Halt);//Debug error de software
+		           errorCritico("\n error de Software de FIFO pop");}
+	       return 0;}//FIFO vacia
+	   else r=1;//FIFO regresa un valor
+       vfd.x.popf(x,&vfd.x);
+       vfd.y.popf(y,&vfd.y);
+       vfd.p.popf(p,&vfd.p);
+return r;	   
+}//fin vfd_FIFO_pop------------------------------------------------------------
+
+/* para el cambio de contexto todas los registros y FIFOs e
+ * resetean*/
+unsigned char vfd_FIFOs_RESET(void){
+	vfd.config.bits.FIFOonReset=1;//se activa el reset, indica que estan en reseteo
+	vfd.x.resetFIFO(&vfd.x,&buffer6[0],SIZE_BUFFER6);
+	vfd.y.resetFIFO(&vfd.y,&buffer7[0],SIZE_BUFFER6);
+	vfd.p.resetFIFO(&vfd.p,&buffer8[0],SIZE_BUFFER6);
+ return TRUE;	
+}//fin --------------------------------------------------------
