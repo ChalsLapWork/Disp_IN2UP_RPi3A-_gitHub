@@ -1,9 +1,36 @@
 #include "VFD.h"
 #include "system.h"
 #include "queue.h"
-
+#include <wiringPi.h>
 extern struct _DISPLAY_VFD_ vfd;
 
+
+
+// Estructura para manejar los pines y datos
+typedef struct {
+    int pins[8];      // Pines GPIO para datos
+} ParallelPort;
+
+ParallelPort port = { .pins = {0, 1, 2, 3, 4, 5, 6, 7} };
+void initParallelPort(ParallelPort *port);
+void writeParallelPort(ParallelPort *port, unsigned char value);
+
+// Configurar pines como salidas
+void initParallelPort(ParallelPort *port) {
+    for (int i = 0; i < 8; i++) {
+        pinMode(port->pins[i], OUTPUT);
+        digitalWrite(port->pins[i], LOW); }
+}//fin de init parallel port++++++++++++++++++++++++++++++
+
+void initParallelPort_Global(void){
+    initParallelPort(&port);
+}//fin init parallel port global++++++++++++++++++++++++++
+
+void writePort(unsigned char value){
+   digitalWrite(WR_PIN,LOW);//comando de escritura 
+   writeParallelPort(&port,value);
+   digitalWrite(WR_PIN,HIGH);//comando de escritura OFF
+}//fin write port++++++++++++++++++++++++++++++++++++++++++
 
 
 
