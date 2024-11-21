@@ -126,7 +126,7 @@ return data;
 void* SubProceso_Tx_VFD(void* arg) {//consumidor
     QueueTxVFD *q = (QueueTxVFD *)arg;
 	struct VFD_DATA data;
-	unsigned char estado124,mem[4];
+	unsigned char estado124,mem[20];
 	printf("\n       Proceso  Transmissor a VFD Iniciando");
 	while(!vfd.config.bits.init_VFD||q->size>0){
 	 switch(estado124){
@@ -147,41 +147,48 @@ return NULL;
 
 //methodo que se usa en un hilo transmisor VFD+++++++++++++++++++++++
 unsigned char Transmissor_a_VFD(struct VFD_DATA v,unsigned char *mem){
-unsigned char ret=0,estado1;
-unsigned char *box1,*box0;
+unsigned char ret=0,*estado1;
 coordn16 coordenadas;
-unsigned char pen,mode,ibox0,x1,y1,x2,y2;
 const unsigned char DELAY_TIME=1;
-unsigned char timer,index;
 const unsigned char CHARS_X=20,PUNTO_X=30,POS_X=40;
 const unsigned char DELAY_X=50,DELAYUS_X=60,DELAYMS_X=70;
+const unsigned char TRANSMTIR=80,SALIR_TX=99;
+unsigned char *box1,*box0,*nbytes;
+unsigned char *pen,*mode,*ibox0,*x1,*y1,*x2,*y2;
+unsigned char *timer,*index,*datos;
 static union W7{//access word: 
 	unsigned  short int wordx; //0xaabb //aa
 	unsigned char byte[2];     //byte[0]=aa,byte[1]=bb
 }w16;
 
-   estado1=*(mem+0);
-	   ret=*(mem+1);
+   estado1=mem+0;
 	  box1=mem+2;
 	  box0=mem+3;
+	   pen=mem+4;
+    nbytes=mem+5;
+	 datos=mem+6;//este debe ser la ultima variable|
 
-      switch(estado1){//DRIVER DE VIDEO
-    	  case 1:timer=0;index=0;ret=0;estado1++;break;
+      switch(*estado1){//DRIVER DE VIDEO
+    	  case 1:*timer=0;*index=0;ret=0;*nbytes=0;(*estado1)++;break;
 		  case 2:switch(v.p){
-                   case _BOX_:if(vfd.config.bits.BOX_enable){box1=&v.x;estado1++;}
-							  else{estado1=99;}break;
-				   case _CHAR_:     estado1=CHARS_X;break;
-				   case _PUNTO_:    estado1=PUNTO_X;break;	
+                   case _BOX_:if(vfd.config.bits.BOX_enable){box1=&v.x;(*estado1)++;}
+							  else{ *estado1=SALIR_TX;}break;
+				   case _CHAR_:     *estado1=CHARS_X;break;
+				   case _PUNTO_:    *estado1=PUNTO_X;break;	
 				   case _RAYA_:     break;
-				   case _BOLD_:     estado1=99;break;//debug
-				   case _POS_:      estado1=POS_X;break;
-				   case _DDS_BORRAR:estado1=POS_X;break;
-				   case _DDS_reZOOM:estado1=POS_X;break;
-				   case _DELAY_:    estado1=DELAY_X;
-				   case _DELAY_US:  estado1=DELAYUS_X;break;
-				   case _DELAY_MS:  estado1=DELAYMS_X;break;	  
-                   default:break;
-		             }//fin-switch selection of operation++++++++++++
+				   case _BOLD_:     *estado1=SALIR_TX;break;//debug
+				   case _POS_:      *estado1=POS_X;break;
+				   case _DDS_BORRAR:*estado1=POS_X;break;
+				   case _DDS_reZOOM:*estado1=POS_X;break;
+				   case _DELAY_:    *estado1=DELAY_X;
+				   case _DELAY_US:  *estado1=DELAYUS_X;break;
+				   case _DELAY_MS:  *estado1=DELAYMS_X;break;	  
+                   default:estado1=99;break;}//fin-switch selection of operation++++++++++++
+		  case CHARS_X:*(datos+0)=v.x;*nbytes=1;*estado1=TRANSMTIR;break;
+		  case TRANSMTIR:  if(*nbytes==*index)(*estado1=SALIR_TX;)
+		                   else{(*estado1)++;}break;
+		  case TRANSMTIR+1:if(digitalRead(R_BUSY_PIN)==1)(*estado1)++;break;
+
 		  default:break;}//fin estado principal-----------------------------------------      
 
 }//transmisor de datos a VFD++++++++++++++++++++++++++++++++
