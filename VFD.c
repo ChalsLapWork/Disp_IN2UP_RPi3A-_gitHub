@@ -26,6 +26,14 @@ void initParallelPort_Global(void){
     initParallelPort(&port);
 }//fin init parallel port global++++++++++++++++++++++++++
 
+// Escribir un byte en el puerto paralelo +++++++++++++++++++++++
+void writeParallelPort(ParallelPort *port, unsigned char value) {
+    for (int i = 0; i < 8; i++) {
+        int bit = (value >> i) & 1;       // Extraer el i-ésimo bit
+        digitalWrite(port->pins[i], bit); }// Establecer el valor en el pin correspondiente
+}//fin de write parallelport ++++++++++++++++++++++++++++++++++++
+
+
 void writePort(unsigned char value){
    digitalWrite(WR_PIN,LOW);//comando de escritura 
    writeParallelPort(&port,value);
