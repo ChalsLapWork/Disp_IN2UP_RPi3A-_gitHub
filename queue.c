@@ -150,9 +150,9 @@ unsigned char Transmissor_a_VFD(struct VFD_DATA v,unsigned char *mem){
 unsigned char ret=0,*estado1;
 coordn16 coordenadas;
 const unsigned char DELAY_TIME=1;
-const unsigned char CHARS_X=20,PUNTO_X=30,POS_X=40;
-const unsigned char DELAY_X=50,DELAYUS_X=60,DELAYMS_X=70;
-const unsigned char TRANSMTIR=80,SALIR_TX=99;
+const int CHARS_X=20,  PUNTO_X=30,  POS_X=40;
+const int DELAY_X=50,  DELAYUS_X=60,DELAYMS_X=70;
+const int TRANSMTIR=80,SALIR_TX=99;
 unsigned char *box1,*box0,*nbytes;
 unsigned char *pen,*mode,*ibox0,*x1,*y1,*x2,*y2;
 unsigned char *timer,*index,*datos;
@@ -183,10 +183,9 @@ static union W7{//access word:
 				   case _DELAY_:    *estado1=DELAY_X;
 				   case _DELAY_US:  *estado1=DELAYUS_X;break;
 				   case _DELAY_MS:  *estado1=DELAYMS_X;break;	  
-                   default:estado1=99;break;}//fin-switch selection of operation++++++++++++
+                   default:*estado1=SALIR_TX;break;}//fin-switch selection of operation++++++++++++
 		  case CHARS_X:*(datos+0)=v.x;*nbytes=1;*estado1=TRANSMTIR;break;
-		  case TRANSMTIR:  if(*nbytes==*index)(*estado1=SALIR_TX;)
-		                   else{(*estado1)++;}break;
+		  case TRANSMTIR:  if(*nbytes==*index)*estado1=SALIR_TX;else(*estado1)++;break;
 		  case TRANSMTIR+1:if(digitalRead(R_BUSY_PIN)==1)(*estado1)++;break;
 
 		  default:break;}//fin estado principal-----------------------------------------      
