@@ -186,10 +186,12 @@ static union W7{//access word:
 		  case CHARS_X:*(datos+0)=v.x;*nbytes=1;*estado1=TRANSMTIR;break;
 		  case TRANSMTIR:  if(*nbytes==*index)*estado1=SALIR_TX;else(*estado1)++;break;
 		  case TRANSMTIR+1:if(digitalRead(R_BUSY_PIN)==1)(*estado1)++;break;
+          case TRANSMTIR+2:writePort(*(datos+*index));
+		                   *(datos+*index)=0;*estado1=TRANSMTIR;break;
+		  case SALIR_TX:cleanArray(datos,DATOS_SIZE,0);*estado1=1;break;
+		  default:*estado1=1;break;}//fin estado principal-----------------------------------------      
 
-		  default:break;}//fin estado principal-----------------------------------------      
-
-}//transmisor de datos a VFD++++++++++++++++++++++++++++++++
+}//transmisor de datos a VFD+++++++++++++++++++++++++++++++++++++++++
 
 
 //Proceso  unico de padre unico  y sin instancias
