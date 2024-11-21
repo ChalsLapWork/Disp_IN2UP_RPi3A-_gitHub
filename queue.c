@@ -73,6 +73,7 @@ void init_queues(void){
     pthread_cond_destroy(&qVFDtx.cond_init_TX_VFD);
 	printf("\n       Comenzamos las otras configuraciones");
 	NoErrorOK();
+	vfd.config.bits.recurso_VFD_Ocupado=FALSE;
 }//fin init queue++++++++++
 
 
@@ -124,11 +125,11 @@ return data;
 
 /*  Control de Display de VFD de despliegue por thread  */
 void* SubProceso_Tx_VFD(void* arg) {//consumidor
-    QueueTxVFD *q = (QueueTxVFD *)arg;
-	struct VFD_DATA data;
-	unsigned char estado124,mem[20];
+    //QueueTxVFD *q = (QueueTxVFD *)arg;
+	//struct VFD_DATA data;
+	//unsigned char estado124,mem[20];
 	printf("\n       Proceso  Transmissor a VFD Iniciando");
-	while(!vfd.config.bits.init_VFD||q->size>0){
+	/*while(!vfd.config.bits.init_VFD||q->size>0){
 	 switch(estado124){
 	   case 1:NoErrorOK();
 	          printf("\n       Tx, Lectura de init=%d",vfd.config.bits.init_VFD);
@@ -141,7 +142,7 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
 	   q->v->config.bits.Proc_VFD_Tx_running=FALSE;
        printf("\n       Hilo TX VFD Apagado:%d",estado124);
  	   NoErrorOK();
-       //sleep(500);	   
+       */	   
 return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
 
@@ -226,7 +227,7 @@ unsigned char i=0;
 		case 7:pthread_cond_signal(&q->cond_init_TX_VFD);estado++;break;
         case 8:estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
-        pthread_join(Proc2_Tx_VFD,NULL);
+        pthread_join(Proc2_Tx_VFD,NULL);vfd.config.bits.Proc_VFD_Tx_running=FALSE;
 	    printf("\n       Init Sub Proceso Init Terminado");
 		NoErrorOK();
 		//sleep(400);
