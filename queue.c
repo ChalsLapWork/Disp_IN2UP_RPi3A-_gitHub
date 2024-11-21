@@ -208,6 +208,7 @@ unsigned char i=0;
 */
 while(1){
 printf("\n       Init VFD running");
+sleep(200);
 }
 /*  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
