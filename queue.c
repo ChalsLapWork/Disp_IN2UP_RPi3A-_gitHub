@@ -150,9 +150,8 @@ unsigned char Transmissor_a_VFD(struct VFD_DATA v,unsigned char *mem){
 unsigned char ret=0,*estado1;
 coordn16 coordenadas;
 const unsigned char DELAY_TIME=1;
-const int CHARS_X=20,  PUNTO_X=30,  POS_X=40;
-const int DELAY_X=50,  DELAYUS_X=60,DELAYMS_X=70;
-const int TRANSMTIR=80,SALIR_TX=99;
+enum{   CHARS_X=20,  PUNTO_X=30,     POS_X=40, DELAY_X=50,  
+      DELAYUS_X=60,DELAYMS_X=70, TRANSMTIR=80,SALIR_TX=99;}
 unsigned char *box1,*box0,*nbytes;
 unsigned char *pen,*mode,*ibox0,*x1,*y1,*x2,*y2;
 unsigned char *timer,*index,*datos;
