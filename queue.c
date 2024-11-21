@@ -197,16 +197,16 @@ static union W7{//access word:
 
 //Proceso  unico de padre unico  y sin instancias
 void* Init_VFD(void* arg){  //Proceso Productor
-QueueTxVFD *q=(QueueTxVFD*)arg;
+/*QueueTxVFD *q=(QueueTxVFD*)arg;
 pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
-#if (debug_level1==1) 
-   printf("\n       Iniziando mutex y semaforos");
-#endif  
-  if(q->v->config.bits.init_VFD){
+*/
+printf("\n       Init VFD");
+  
+/*  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
 	switch(estado){
@@ -231,6 +231,7 @@ unsigned char i=0;
 	    printf("\n       Init Sub Proceso Init Terminado");
 		NoErrorOK();
 		//sleep(400);
+		*/
 return NULL;
 }//fin init VFD -------------------------------------------------------------------
 
