@@ -206,7 +206,8 @@ const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
 */
-while(1){
+int i;
+while(++i<100){
 printf("\n       Init VFD running");
 sleep(200);
 }
