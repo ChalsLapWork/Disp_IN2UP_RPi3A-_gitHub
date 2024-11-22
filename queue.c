@@ -73,7 +73,7 @@ void init_queues(void){
 	//pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
     pthread_detach(Proc1_Init_VFD);//no espera que terminen este proceso y el hilo continua
 	pthread_detach(Proc_limpiador);//este hilo continua no espera que terminen los proc hijos
-	printf("\n       Comenzamos las otras configuraciones");
+	printf("\n       Fin de Proceso Init VFD");
 	NoErrorOK();
 	vfd.config.bits.recurso_VFD_Ocupado=FALSE;
 }//fin init queue++++++++++
@@ -232,7 +232,7 @@ int i;
 	vfd.config.bits.init_VFD=FALSE;
 	vfd.config.bits.Proc_VFD_Tx_running=TRUE;
 	vfd.config.bits.VDF_busy=TRUE;
-	while(++i<100){
+	while(++i<10){
 	printf("\n       Init VFD running");
 	usleep(12200);}
 	vfd.config.bits.init_VFD=TRUE;
