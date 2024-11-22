@@ -229,7 +229,8 @@ pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
-unsigned char i=0;*/
+*/
+unsigned char i=0;
 
 	pthread_mutex_lock(&vfd.sync.mutex_free);
 	vfd.config.bits.init_VFD=FALSE;
