@@ -24,8 +24,7 @@ typedef struct Node{
 typedef struct Queue{
   Node *head,*tail;
   int size;
-  pthread_cond_t  cond_init_TX_VFD;//condicion de init VFD transmisor
-  pthread_mutex_t mutex_init_VFD;//mutex para init VFD y transmisor
+  
   #if(SIZE_MAX_FIFO<255)
     unsigned char nLibres;
 	unsigned char nOcupados;
@@ -48,6 +47,7 @@ unsigned char  buffer8[SIZE_BUFFER6];//FIFO graficos con SO. aqui guarda el para
 
 void init_queues(void){
 	pthread_t Proc1_Init_VFD;//Proceso para inizializar el VFD
+	pthread_t Proc_limpiador;//proceso que limpia recursos del proceso hilo init VFD
 	init_FIFO_General_1byte(&vfd.x,&buffer6[0],SIZE_BUFFER6);
     init_FIFO_General_1byte(&vfd.y,&buffer7[0],SIZE_BUFFER6);
     init_FIFO_General_1byte(&vfd.p,&buffer8[0],SIZE_BUFFER6);
@@ -62,20 +62,39 @@ void init_queues(void){
 	NoErrorOK();
 	printf("\n       Creando Proceso Init VFD");
 	switch(pthread_create(&Proc1_Init_VFD,NULL,Init_VFD,&qVFDtx)){
-		case 0:NoErrorOK();break;
+		case 0:NoErrorOK();
+		        printf("\n       Creando Proceso Limpiador de INIT VFD");
+		       if(pthread_create(&Proc_limpiador,NULL,Proceso_Limpiador,NULL)==0){NoErrorOK();}
+			   break;
 		case EAGAIN:errorCritico("Recursos insuficientes,Error de hilo init VFD");break;
 		case EINVAL:errorCritico("Arg invalidos,Error de hilo init VFD");break;
 		case EPERM:errorCritico("Permisos Insuficientes,Error de hilo init VFD");break;
 		default:errorCritico("Error desconocido de hilo init VFD");break;}
 	//pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
-    pthread_join(Proc1_Init_VFD,NULL);
-	pthread_mutex_destroy(&qVFDtx.mutex_init_VFD);
-    pthread_cond_destroy(&qVFDtx.cond_init_TX_VFD);
+    pthread_detach(Proc1_Init_VFD);//no espera que terminen este proceso y el hilo continua
+	pthread_detach(Proc_limpiador);//este hilo continua no espera que terminen los proc hijos
 	printf("\n       Comenzamos las otras configuraciones");
 	NoErrorOK();
 	vfd.config.bits.recurso_VFD_Ocupado=FALSE;
 }//fin init queue++++++++++
 
+//** Proceso Hilo encargado de limpiar el Proceso Init VFD
+void *Proceso_Limpiador(void *arg) {
+	bool r;
+    pthread_mutex_lock(&vfd.sync.mutex_free);
+	printf("\n       Limpieza de  recursos de init VFD...\n");
+	while(!((vfd.config.bits.init_VFD)&&// Esperar a que se complete el trabajo (opcional)
+	        (!vfd.config.bits.Proc_VFD_Tx_running))){
+			//printf(" Limpiador esperando \n");
+			pthread_cond_wait(&vfd.sync.cond_free,&vfd.sync.mutex_free);}	
+    usleep(3); // Asegúrate de que el hilo hijo haya terminado
+    pthread_mutex_destroy(&vfd.sync.mutex_init_VFD);
+    pthread_cond_destroy( &vfd.sync.cond_init_TX_VFD);
+	pthread_mutex_destroy(&vfd.sync.mutex_free);
+    pthread_cond_destroy( &vfd.sync.cond_free);
+    NoErrorOK();
+    return NULL;
+}//fin del proceso hilo limpiador+++++++++++++++++++++++++++++++
 
 
 
@@ -84,8 +103,11 @@ void init_Queue_with_Thread(QueueTxVFD *q){
 	  q->size=0;
 	  q->nLibres=SIZE_MAX_FIFO;
 	  q->nOcupados=0;
-	  pthread_mutex_init(&q->mutex_init_VFD,NULL);//
-	  pthread_cond_init(&q->cond_init_TX_VFD,NULL);
+	  pthread_mutex_init(&vfd.sync.mutex_init_VFD,NULL);//
+	  pthread_cond_init(&vfd.sync.cond_init_TX_VFD,NULL);
+	  pthread_mutex_init(&vfd.sync.mutex_free,NULL);//
+	  pthread_cond_init(&vfd.sync.cond_free,NULL);
+	  
 }//fin de init FIFO transmit VFD+++++++++++++++++++++++++
   
 
@@ -207,10 +229,18 @@ const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
 */
 int i;
-while(++i<100){
-printf("\n       Init VFD running");
-sleep(200);
-}
+	pthread_mutex_lock(&vfd.sync.mutex_free);
+	vfd.config.bits.init_VFD=FALSE;
+	vfd.config.bits.Proc_VFD_Tx_running=TRUE;
+	vfd.config.bits.VDF_busy=TRUE;
+	while(++i<100){
+	printf("\n       Init VFD running");
+	usleep(12200);}
+	vfd.config.bits.init_VFD=TRUE;
+	vfd.config.bits.Proc_VFD_Tx_running=FALSE;
+	vfd.config.bits.VDF_busy=FALSE;
+	pthread_cond_signal(&vfd.sync.cond_free);
+	pthread_mutex_unlock(&vfd.sync.mutex_free);
 /*  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){

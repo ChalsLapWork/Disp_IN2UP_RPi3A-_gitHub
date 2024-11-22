@@ -1,4 +1,4 @@
-
+#include <pthread.h>
 #define SIZE_BUF_TFT 5
 #define SIZE_IO_TX_BUFFER 85 //ARRAY donde se guarda la direccion de la cabeza del paquete a enviar
 #define SIZE_B 60//ARRAY donde se guarda los paquetes que se van a enviar
@@ -64,32 +64,43 @@ struct _FIFO_func_{
 };//fin _FIFO_func_----------------------------------------
 
 
+union _Byte5_{
+	unsigned short int bytes1;
+	struct{
+		unsigned short FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
+		unsigned short DDSon:1;//indica si borramos registro de datos repetidos de DDS
+		unsigned short TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
+		unsigned short init_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
+		unsigned short init_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
+		unsigned short BOX_enable:1;
+		unsigned short VDF_busy:1;//se estan mandando comandos  o posiciones
+		unsigned short ADC_DATO:1;
+		unsigned short Proc_VFD_Tx_running:1;//esta corriendo el hilo que transmite a la VFD
+		unsigned short recurso_VFD_Ocupado:1;//recurso esta 0:libre o 1:ocupado?
+	}bits;
+};
+
+ struct _Sync{
+	pthread_cond_t  cond_init_TX_VFD;//condicion de init VFD transmisor
+	pthread_mutex_t mutex_init_VFD;//mutex para init VFD y transmisor
+	pthread_mutex_t mutex_free;//mutex para liberar 
+	pthread_cond_t  cond_free;//mutex cond para liberar
+};//control de sincronia entre los hilos 
+ 
 struct _DISPLAY_VFD_{
 	struct _FIFO_1byte_ x;//parametro 1
 	struct _FIFO_1byte_ y;//parametro 2
 	struct _FIFO_1byte_ p;//parametro 3
 	struct _FIFO_func_  f1;//funciones para guardar lo que se grafica
-	struct _box_control{
+	union  _Byte5_ config;//banderas de configuracion y control para el display y menus
+	struct _Sync   sync;//syncronia y control de hilos
+ 	struct _box_control{
 		 unsigned char boxs[SIZE_BOXES];
 		 unsigned char box0;
 		 unsigned char box; 
 		 unsigned short int timer;//se activa  por timer y resetea el array
 	   }box;
-	union _Byte5_{
-	   	  		unsigned short int bytes1;
-	   	  		struct{
-	   	  			unsigned short FIFOonReset:1;//Las FIFOS estan reseteadas?? osea que esan en ceros y desbilitadas, esto para cambiar de contexto
-	   	  			unsigned short DDSon:1;//indica si borramos registro de datos repetidos de DDS
-	   	  			unsigned short TxBuffOFF:1;//buffer de TX vacio, para saber que ya se transmitio todo
-	   	  			unsigned short init_VFD:1;//flag init VFD indica si ya se init el VFD comandos de inizializacion
-	   	  			unsigned short init_Menu:1;//flag init Menu, enciende e inicializa los menus y el primer menu en pantalla
-	   	  			unsigned short BOX_enable:1;
-	   	  			unsigned short VDF_busy:1;//se estan mandando comandos  o posiciones
-	   	  		    unsigned short ADC_DATO:1;
-					unsigned short Proc_VFD_Tx_running:1;//esta corriendo el hilo que transmite a la VFD
-					unsigned short recurso_VFD_Ocupado:1;//recurso esta 0:libre o 1:ocupado?
-	   	  		}bits;
-	   	  	  }config;
+	
 	struct _Vars_{
 		unsigned char nbytes;//bytes a emitir
 		unsigned char dat[DATOS_SIZE];
@@ -98,7 +109,6 @@ struct _DISPLAY_VFD_{
 		unsigned long  int timer_ms;
 		unsigned char index;
 		unsigned char recurso;//quien ocupa este recurso.
-		
 //		unsigned char estado;//estado de: init_VFD,
 	   }v;
     		
