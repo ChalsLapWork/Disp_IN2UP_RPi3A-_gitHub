@@ -80,7 +80,6 @@ void init_queues(void){
 
 //** Proceso Hilo encargado de limpiar el Proceso Init VFD
 void *Proceso_Limpiador(void *arg) {
-	bool r;
     pthread_mutex_lock(&vfd.sync.mutex_free);
 	printf("\n       Limpieza de  recursos de init VFD...\n");
 	while(!((vfd.config.bits.init_VFD)&&// Esperar a que se complete el trabajo (opcional)
@@ -117,7 +116,7 @@ void enqueue(QueueTxVFD *q,struct VFD_DATA dato1){
 	Node* new_node = (Node*)malloc(sizeof(Node));
 	new_node->dato=dato1;
 	new_node->next=NULL;
-    pthread_mutex_lock(&q->mutex_init_VFD);
+    pthread_mutex_lock(&vfd.sync.mutex_init_VFD);
 	if(q->tail==NULL){
 		  q->head=new_node;
 		  q->tail=new_node;}
@@ -125,14 +124,14 @@ void enqueue(QueueTxVFD *q,struct VFD_DATA dato1){
 	     q->tail=new_node;}
 	q->size++;	 
 	q->nLibres--;q->nOcupados++;
-    pthread_cond_signal(&q->cond_init_TX_VFD); // Notifica que la cola no está vacía
-    pthread_mutex_unlock(&q->mutex_init_VFD);
+    pthread_cond_signal(&vfd.sync.cond_init_TX_VFD); // Notifica que la cola no está vacía
+    pthread_mutex_unlock(&vfd.sync.mutex_init_VFD);
 }//fin enqueue++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 struct VFD_DATA dequeue(QueueTxVFD  *q) {
-	pthread_mutex_lock(&q->mutex_init_VFD);
+	pthread_mutex_lock(&vfd.sync.mutex_init_VFD);
 	while(q->size==0)
-	    pthread_cond_wait(&q->cond_init_TX_VFD,&q->mutex_init_VFD);	//espera si la cola esta vacia
+	    pthread_cond_wait(&vfd.sync.cond_init_TX_VFD,&vfd.sync.mutex_init_VFD);	//espera si la cola esta vacia
     Node *temp=q->head;
 	struct VFD_DATA data=temp->dato;
 	q->head=q->head->next;
@@ -140,7 +139,7 @@ struct VFD_DATA dequeue(QueueTxVFD  *q) {
 	     q->tail=NULL;
     q->size--;
 	free(temp);		 
-    pthread_mutex_unlock(&q->mutex_init_VFD);
+    pthread_mutex_unlock(&vfd.sync.mutex_init_VFD);
 	q->nLibres++;q->nOcupados--;
 return data;
 }//fin de queue+++++++++++++++++++++++++++++++++
