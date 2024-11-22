@@ -73,7 +73,7 @@ void init_queues(void){
 	//pthread_detach(Proc_Init_VFD);//que muera sin monitor y libere recursos
     pthread_detach(Proc1_Init_VFD);//no espera que terminen este proceso y el hilo continua
 	pthread_detach(Proc_limpiador);//este hilo continua no espera que terminen los proc hijos
-	printf("\n       Fin de Proceso Init VFD");
+	printf("\n       Fin de  Init Queues");
 	NoErrorOK();
 	vfd.config.bits.recurso_VFD_Ocupado=FALSE;
 }//fin init queue++++++++++
@@ -81,7 +81,7 @@ void init_queues(void){
 //** Proceso Hilo encargado de limpiar el Proceso Init VFD
 void *Proceso_Limpiador(void *arg) {
     pthread_mutex_lock(&vfd.sync.mutex_free);
-	printf("\n       Limpieza de  recursos de init VFD...\n");
+	printf("\n       Limpieza de  recursos de init VFD...");
 	while(!((vfd.config.bits.init_VFD)&&// Esperar a que se complete el trabajo (opcional)
 	        (!vfd.config.bits.Proc_VFD_Tx_running))){
 			//printf(" Limpiador esperando \n");
@@ -219,15 +219,14 @@ static union W7{//access word:
 
 
 //Proceso  unico de padre unico  y sin instancias
-void* Init_VFD(void* arg){  //Proceso Productor
-/*QueueTxVFD *q=(QueueTxVFD*)arg;
+void* Init_VFD(void* arg){  //Proceso Productor<---Proceso/hilo/THread
+QueueTxVFD *q=(QueueTxVFD*)arg;//
 pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 unsigned char i=0;
-*/
-int i;
+
 	pthread_mutex_lock(&vfd.sync.mutex_free);
 	vfd.config.bits.init_VFD=FALSE;
 	vfd.config.bits.Proc_VFD_Tx_running=TRUE;
@@ -240,6 +239,8 @@ int i;
 	vfd.config.bits.VDF_busy=FALSE;
 	pthread_cond_signal(&vfd.sync.cond_free);
 	pthread_mutex_unlock(&vfd.sync.mutex_free);
+
+
 /*  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
