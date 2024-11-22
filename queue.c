@@ -96,6 +96,7 @@ unsigned char estado;
 			   pthread_cond_destroy( &vfd.sync.cond_free);
 			   estado++;break;
 		case 6:NoErrorOK();estado++;break;
+		default:estado=1;break;}
     return NULL;
 }//fin del proceso hilo limpiador+++++++++++++++++++++++++++++++
 
