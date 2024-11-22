@@ -80,19 +80,22 @@ void init_queues(void){
 
 //** Proceso Hilo encargado de limpiar el Proceso Init VFD
 void *Proceso_Limpiador(void *arg) {
+unsigned char estado;	
     printf("\n       Proceso Limpiador de VFD activo");
 	pthread_mutex_lock(&vfd.sync.mutex_free);
 	printf("\n       Limpieza de  recursos de init VFD...");
-	while(!((vfd.config.bits.init_VFD)&&// Esperar a que se complete el trabajo (opcional)
-	        (!vfd.config.bits.Proc_VFD_Tx_running))){
-			//printf(" Limpiador esperando \n");
-			pthread_cond_wait(&vfd.sync.cond_free,&vfd.sync.mutex_free);}	
-    usleep(3); // Asegúrate de que el hilo hijo haya terminado
-    pthread_mutex_destroy(&vfd.sync.mutex_init_VFD);
-    pthread_cond_destroy( &vfd.sync.cond_init_TX_VFD);
-	pthread_mutex_destroy(&vfd.sync.mutex_free);
-    pthread_cond_destroy( &vfd.sync.cond_free);
-    NoErrorOK();
+	switch(estado){
+		case 1:if(vfd.config.bits.init_VFD==1)estado++;break;
+		case 2:if(vfd.config.bits.Proc_VFD_Tx_running==0)estado++;break;
+	    case 3:pthread_cond_wait(&vfd.sync.cond_free,&vfd.sync.mutex_free);
+		       estado++;break;
+		case 4:usleep(3);estado++;break;
+		case 5:pthread_mutex_destroy(&vfd.sync.mutex_init_VFD);
+			   pthread_cond_destroy( &vfd.sync.cond_init_TX_VFD);
+			   pthread_mutex_destroy(&vfd.sync.mutex_free);
+			   pthread_cond_destroy( &vfd.sync.cond_free);
+			   estado++;break;
+		case 6:NoErrorOK();estado++;break;
     return NULL;
 }//fin del proceso hilo limpiador+++++++++++++++++++++++++++++++
 
@@ -221,12 +224,12 @@ static union W7{//access word:
 
 //Proceso  unico de padre unico  y sin instancias
 void* Init_VFD(void* arg){  //Proceso Productor<---Proceso/hilo/THread
-QueueTxVFD *q=(QueueTxVFD*)arg;//
+/*QueueTxVFD *q=(QueueTxVFD*)arg;//
 pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
-unsigned char i=0;
+unsigned char i=0;*/
 
 	pthread_mutex_lock(&vfd.sync.mutex_free);
 	vfd.config.bits.init_VFD=FALSE;
