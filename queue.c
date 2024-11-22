@@ -80,7 +80,8 @@ void init_queues(void){
 
 //** Proceso Hilo encargado de limpiar el Proceso Init VFD
 void *Proceso_Limpiador(void *arg) {
-    pthread_mutex_lock(&vfd.sync.mutex_free);
+    printf("\n       Proceso Limpiador de VFD activo");
+	pthread_mutex_lock(&vfd.sync.mutex_free);
 	printf("\n       Limpieza de  recursos de init VFD...");
 	while(!((vfd.config.bits.init_VFD)&&// Esperar a que se complete el trabajo (opcional)
 	        (!vfd.config.bits.Proc_VFD_Tx_running))){
@@ -239,7 +240,7 @@ unsigned char i=0;
 	vfd.config.bits.VDF_busy=FALSE;
 	pthread_cond_signal(&vfd.sync.cond_free);
 	pthread_mutex_unlock(&vfd.sync.mutex_free);
-
+    printf("\n       Proceso Init VFD Terminado");
 
 /*  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
