@@ -228,8 +228,11 @@ pthread_t Proc2_Tx_VFD;//Proceso Transmisor al VFD, para despliegue de pantalla
 unsigned char ret=0,estado;
 const unsigned char SIZE_CMD=7;//numero de comandos
 const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
-
 unsigned char i=0;
+pthread_attr_t attr;
+size_t stacksize=1024;// memoria para el hilo
+pthread_attr_init(&attr);
+pthread_attr_setstacksize(&attr,stacksize);
 
 /*
 	pthread_mutex_lock(&vfd.sync.mutex_free);
@@ -260,7 +263,7 @@ unsigned char i=0;
 			   estado++;break;
 		case 3:NoErrorOK();estado++;break;
 		case 4:printf("\n       Creando Hilo Transmisor");
-		       switch(pthread_create(&Proc2_Tx_VFD,NULL,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
+		       switch(pthread_create(&Proc2_Tx_VFD,&attr,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
 				case 0:NoErrorOK();break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
 				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
@@ -278,6 +281,7 @@ unsigned char i=0;
         case 10:estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
   pthread_join(Proc2_Tx_VFD,NULL);
+  pthread_attr_destroy(&attr);
   vfd.config.bits.Proc_VFD_Tx_running=FALSE;//Ya se Destruyo Proceso VFDtx
   printf("\n       Init Sub Proceso Init Terminado");
   NoErrorOK();		
