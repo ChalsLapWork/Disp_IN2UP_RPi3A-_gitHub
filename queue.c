@@ -151,13 +151,11 @@ return data;
 
 /*  Control de Display de VFD de despliegue por thread  */
 void* SubProceso_Tx_VFD(void* arg) {//consumidor
-    //QueueTxVFD *q = (QueueTxVFD *)arg;
-	//struct VFD_DATA data;
-	//unsigned char estado124,mem[20];
-	while(1){
-	printf("\n       Proceso  Transmissor a VFD Iniciando");
-	}
-	/*while(!vfd.config.bits.init_VFD||q->size>0){
+    QueueTxVFD *q = (QueueTxVFD *)arg;
+	struct VFD_DATA data;
+	unsigned char estado124,mem[20];
+	
+	while(!vfd.config.bits.init_VFD||q->size>0){
 	 switch(estado124){
 	   case 1:NoErrorOK();
 	          printf("\n       Tx, Lectura de init=%d",vfd.config.bits.init_VFD);
@@ -170,7 +168,7 @@ void* SubProceso_Tx_VFD(void* arg) {//consumidor
 	   q->v->config.bits.Proc_VFD_Tx_running=FALSE;
        printf("\n       Hilo TX VFD Apagado:%d",estado124);
  	   NoErrorOK();
-       */	   
+      
 return NULL;
 }//fin del subproceso de envio de datos al display+++++++++++++
 
@@ -233,7 +231,7 @@ const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 
 unsigned char i=0;
 
-	pthread_mutex_lock(&vfd.sync.mutex_free);
+/*	pthread_mutex_lock(&vfd.sync.mutex_free);
 	vfd.config.bits.init_VFD=FALSE;
 	vfd.config.bits.Proc_VFD_Tx_running=TRUE;
 	vfd.config.bits.VDF_busy=TRUE;
@@ -246,14 +244,20 @@ unsigned char i=0;
 	pthread_cond_signal(&vfd.sync.cond_free);
 	pthread_mutex_unlock(&vfd.sync.mutex_free);
     printf("\n       Proceso Init VFD Terminado");
+*/
 
-
-/*  if(q->v->config.bits.init_VFD){
+ if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
 	switch(estado){
-		case 1:NoErrorOK();estado++;break;
-		case 2:printf("\n       Creando Hilo Transmisor");
+		case 1:printf("\n       Init VFD starting. . .");estado++;break;
+		case 2:pthread_mutex_lock(&vfd.sync.mutex_free);
+		       vfd.config.bits.init_VFD=FALSE;//no se ha terminado de init
+			   vfd.config.bits.Proc_VFD_Tx_running=TRUE;//no se ha iniziado este proceso
+			   vfd.config.bits.VDF_busy=TRUE;//Nadie mas puede usar el VFD
+			   estado++;break;
+		case 3:NoErrorOK();estado++;break;
+		case 4:printf("\n       Creando Hilo Transmisor");
 		       switch(pthread_create(&Proc2_Tx_VFD,NULL,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
 				case 0:NoErrorOK();break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
@@ -261,19 +265,20 @@ unsigned char i=0;
 				case EPERM:errorCritico("Permisos Insuficientes,Error Proc Tx VFD");break;
 				default:errorCritico("Error desconocido Proc Tx VFD");break;}
 			   estado++;break;
-	    case 3:printf("\n       Init, comenzar a llenar los FIFOs Init para Transmitir");
+	    case 5:printf("\n       Init, comenzar a llenar los FIFOs Init para Transmitir");
 			   NoErrorOK();estado++;break;
-		case 4:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
-		case 5:if(++i<SIZE_CMD)estado=4;else{estado++;}break;
-		case 6:vfd.config.bits.init_VFD=TRUE;estado++;break;
-		case 7:pthread_cond_signal(&q->cond_init_TX_VFD);estado++;break;
-        case 8:estado=0;ret=TRUE;break;
+		case 6:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
+		case 7:if(++i<SIZE_CMD)estado=6;else{estado++;}break;
+		case 8:vfd.config.bits.init_VFD=TRUE;estado++;break;//se usa en limpieza esta bandera
+		
+		
+		case 9:pthread_cond_signal(&vfd.sync.cond_init_TX_VFD);estado++;break;
+        case 10:estado=0;ret=TRUE;break;
 		default:estado=1;break;}}//fin switch while 
-        pthread_join(Proc2_Tx_VFD,NULL);vfd.config.bits.Proc_VFD_Tx_running=FALSE;
-	    printf("\n       Init Sub Proceso Init Terminado");
-		NoErrorOK();
-		//sleep(400);
-		*/
+  pthread_join(Proc2_Tx_VFD,NULL);
+  vfd.config.bits.Proc_VFD_Tx_running=FALSE;//Ya se Destruyo Proceso VFDtx
+  printf("\n       Init Sub Proceso Init Terminado");
+  NoErrorOK();		
 return NULL;
 }//fin init VFD -------------------------------------------------------------------
 
