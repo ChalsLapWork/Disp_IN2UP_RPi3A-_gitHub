@@ -263,13 +263,14 @@ pthread_attr_setstacksize(&attr,stacksize);
 			   estado++;break;
 		case 3:NoErrorOK();estado++;break;
 		case 4:printf("\n       Creando Hilo Transmisor");
-		       switch(pthread_create(&Proc2_Tx_VFD,&attr,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
+		       /*switch(pthread_create(&Proc2_Tx_VFD,&attr,SubProceso_Tx_VFD,&qVFDtx)){//ret==0 :all OK	
 				case 0:NoErrorOK();break;//todo ok
 				case EAGAIN:errorCritico("Recursos insuficientes,Error Proc Tx VFD");break;
 				case EINVAL:errorCritico("Arg invalidos,Error de Proc Tx VFD");break;
 				case EPERM:errorCritico("Permisos Insuficientes,Error Proc Tx VFD");break;
 				default:errorCritico("Error desconocido Proc Tx VFD");break;}
-			   estado++;break;
+			   estado++;*/
+			   break;
 	    case 5:printf("\n       Init, comenzar a llenar los FIFOs Init para Transmitir");
 			   NoErrorOK();estado++;break;
 		case 6:if(VFDcommand(s[i]))estado++;break; // init display  ESC@= 1BH,40H
