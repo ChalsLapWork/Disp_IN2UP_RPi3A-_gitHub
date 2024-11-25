@@ -231,7 +231,7 @@ const unsigned char s[7]={0x1BU,0x40U,0x1FU,0x28U,0x67U,0x01U,FONTSIZE2};
 
 unsigned char i=0;
 
-/*	pthread_mutex_lock(&vfd.sync.mutex_free);
+	pthread_mutex_lock(&vfd.sync.mutex_free);
 	vfd.config.bits.init_VFD=FALSE;
 	vfd.config.bits.Proc_VFD_Tx_running=TRUE;
 	vfd.config.bits.VDF_busy=TRUE;
@@ -244,8 +244,9 @@ unsigned char i=0;
 	pthread_cond_signal(&vfd.sync.cond_free);
 	pthread_mutex_unlock(&vfd.sync.mutex_free);
     printf("\n       Proceso Init VFD Terminado");
-*/
 
+
+/*
  if(q->v->config.bits.init_VFD){
 	   errorCritico("ya esta inizializado Proceso, Error de duplicacion");}	   	   
  while(!ret){
@@ -279,6 +280,8 @@ unsigned char i=0;
   vfd.config.bits.Proc_VFD_Tx_running=FALSE;//Ya se Destruyo Proceso VFDtx
   printf("\n       Init Sub Proceso Init Terminado");
   NoErrorOK();		
+*/
+
 return NULL;
 }//fin init VFD -------------------------------------------------------------------
 
